@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#10B981">
+  <title>Shared Receipt — QATTAH</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    body { display:flex; justify-content:center; background:var(--bg); }
+    .receipt-page { width:100%; max-width:560px; min-height:100vh; padding:0 0 40px; }
+  </style>
+</head>
+<body>
+  <div class="receipt-page" id="r-root">
+    <div class="loading-center"><div class="spinner"></div></div>
+  </div>
+
+  <div id="toast-area" class="toast-area"></div>
+
+  <script>
+    // Apply saved theme immediately (matches the rest of the app).
+    (function () {
+      const t = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/receipt-share.js"></script>
+</body>
+</html>
