@@ -1,88 +1,173 @@
 /* ============================================================
-   QATTAH — Main Stylesheet · v1.0
+   QATTAH — Main Stylesheet · v2.0
    Mobile-first · Dark/Light · RTL-ready
+
+   Visual language adapted from the "SplitEasy" Figma Make design:
+   a warm cream ground instead of cold grey-white, near-black ink,
+   heavy condensed display type, pill buttons, hairline-bordered
+   cards with almost no shadow.
+
+   Two deliberate departures from that design:
+   1. Its terracotta (#C0563A) and green (#4A7C59) only reach ~3.9:1
+      and ~4.2:1 on the cream background — fine for the giant numerals
+      they were used for, but failing AA for the small pills and
+      labels we also need them in. Both are darkened here to clear
+      4.5:1 on cream while keeping the same character.
+   2. The design has no dark theme. The dark palette below is derived
+      rather than copied: warm charcoals that keep the cream/ink
+      relationship, never the cold navy this file used to have.
    ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Black&family=Cairo:wght@400;500;600;700;900&display=swap');
 
 /* ── CSS Custom Properties ─────────────────────────────────── */
 :root {
-  --primary:        #10B981;
-  --primary-dark:   #059669;
-  --primary-light:  #D1FAE5;
-  --secondary:      #1F2937;
-  --accent:         #F59E0B;
-  --accent-dark:    #D97706;
+  /* Ink — the design's primary action colour is near-black, not a hue.
+     Kept separate from --primary so QATTAH's green identity survives
+     in the logo, nav and money-positive states. */
+  --ink:        #1A1815;
+  --ink-soft:   #2E2A24;
 
-  --success:  #10B981;
-  --warning:  #F59E0B;
-  --danger:   #EF4444;
-  --info:     #3B82F6;
+  /* Brand green — darkened from the design's #4A7C59 to 5.4:1 on cream */
+  --primary:        #3A6B4A;
+  --primary-dark:   #2C5239;
+  --primary-light:  #DFE9E1;
 
+  --secondary:      #2E2A24;
+  --accent:         #B8761F;
+  --accent-dark:    #915B14;
+
+  /* Money semantics — 5.4:1 and 5.2:1 on cream, both AA for small text */
+  --success:        #3A6B4A;
+  --success-light:  #DFE9E1;
+  --warning:        #B8761F;
+  --warning-light:  #F6EBD8;
+  --danger:         #A8442A;
+  --danger-light:   #F6E2DB;
+  --info:           #2F5D7C;
+  --info-light:     #DEE7ED;
+
+  /* Warm neutral ramp (replaces the cool blue-greys) */
   --white:      #FFFFFF;
-  --gray-50:    #F9FAFB;
-  --gray-100:   #F3F4F6;
-  --gray-200:   #E5E7EB;
-  --gray-300:   #D1D5DB;
-  --gray-400:   #9CA3AF;
-  --gray-500:   #6B7280;
-  --gray-600:   #4B5563;
-  --gray-700:   #374151;
-  --gray-800:   #1F2937;
-  --gray-900:   #111827;
+  --gray-50:    #FAF8F4;
+  --gray-100:   #F4F1EB;
+  --gray-200:   #E4DED2;
+  --gray-300:   #CFC7B7;
+  --gray-400:   #A79F91;
+  --gray-500:   #7D7668;
+  --gray-600:   #615B50;
+  --gray-700:   #443F37;
+  --gray-800:   #2E2A24;
+  --gray-900:   #1A1815;
 
-  --bg:         #F9FAFB;
+  --bg:         #F4F1EB;
   --bg-card:    #FFFFFF;
-  --bg-input:   #F3F4F6;
-  --text:       #1F2937;
-  --text-muted: #6B7280;
-  --text-light: #9CA3AF;
-  --border:     #E5E7EB;
-  --divider:    #F3F4F6;
-  --shadow:     rgba(0,0,0,.07);
-  --shadow-md:  rgba(0,0,0,.12);
-  --shadow-lg:  rgba(0,0,0,.18);
+  --bg-input:   #EFEBE3;
+  --text:       #1A1815;
+  --text-muted: #615B50;
+  --text-light: #A79F91;
+  --border:     #E4DED2;
+  --divider:    #EDE8DE;
+
+  /* The design leans on hairline borders, not elevation */
+  --shadow:     rgba(26,24,21,.05);
+  --shadow-md:  rgba(26,24,21,.09);
+  --shadow-lg:  rgba(26,24,21,.16);
 
   --nav-bg:        #FFFFFF;
   --nav-height:    64px;
   --header-height: 60px;
 
-  --radius-sm:  6px;
-  --radius:     12px;
-  --radius-lg:  18px;
-  --radius-xl:  26px;
+  --radius-sm:  8px;
+  --radius:     14px;
+  --radius-lg:  20px;
+  --radius-xl:  28px;
   --radius-full:9999px;
+
+  --font-display: 'Archivo Black','Archivo',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-body:    'Archivo',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
 
   --ease:       0.2s ease;
   --ease-slow:  0.35s cubic-bezier(.4,0,.2,1);
 }
 
+/* Arabic gets Cairo for both roles — Archivo Black has no Arabic, and
+   falling back mid-page would break the heading/body relationship. */
+:root:lang(ar),[dir="rtl"]{
+  --font-display: 'Cairo',system-ui,sans-serif;
+  --font-body:    'Cairo',system-ui,sans-serif;
+}
+
 /* ── Dark theme ─────────────────────────────────────────────── */
+/* Warm charcoal, not navy: the cream ground dims rather than turning
+   blue, so the design's warmth survives the switch. */
 [data-theme="dark"] {
-  --bg:         #0F172A;
-  --bg-card:    #1E293B;
-  --bg-input:   #334155;
-  --text:       #F1F5F9;
-  --text-muted: #94A3B8;
-  --text-light: #64748B;
-  --border:     #334155;
-  --divider:    #1E293B;
-  --shadow:     rgba(0,0,0,.35);
-  --shadow-md:  rgba(0,0,0,.45);
-  --shadow-lg:  rgba(0,0,0,.55);
-  --nav-bg:     #1E293B;
-  --primary-light: rgba(16,185,129,.15);
+  --ink:        #F2EEE5;          /* black pills invert to cream ones */
+  --ink-soft:   #D8D2C5;
+
+  --primary:        #6FA982;      /* lifted for contrast on dark */
+  --primary-dark:   #558B67;
+  --primary-light:  rgba(111,169,130,.16);
+
+  --success:        #6FA982;
+  --success-light:  rgba(111,169,130,.16);
+  --warning:        #D9A038;
+  --warning-light:  rgba(217,160,56,.16);
+  --danger:         #E08163;
+  --danger-light:   rgba(224,129,99,.16);
+  --info:           #7FAFD0;
+  --info-light:     rgba(127,175,208,.16);
+
+  --bg:         #16140F;
+  --bg-card:    #211E18;
+  --bg-input:   #2B2721;
+  --text:       #F2EEE5;
+  --text-muted: #A79F91;
+  --text-light: #7D7668;
+  --border:     #332E26;
+  --divider:    #262119;
+  --shadow:     rgba(0,0,0,.40);
+  --shadow-md:  rgba(0,0,0,.52);
+  --shadow-lg:  rgba(0,0,0,.62);
+  --nav-bg:     #211E18;
 }
 
 /* ── Reset ──────────────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{font-size:16px;-webkit-tap-highlight-color:transparent;scroll-behavior:smooth}
 body{
-  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  font-family:var(--font-body);
   background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
   transition:background var(--ease-slow),color var(--ease-slow);
 }
 [lang="ar"],[dir="rtl"],.rtl{
-  font-family:'Segoe UI','Arabic Typesetting',Tahoma,Arial,sans-serif;
+  font-family:var(--font-body);
   direction:rtl;text-align:right;
+}
+
+/* ── Display type ────────────────────────────────────────────
+   The design's signature: headings in a heavy condensed face, set
+   tight, against a quiet body sans. Archivo Black has one weight,
+   so weight declarations here are for the fallback stack. */
+h1,h2,h3,.display{
+  font-family:var(--font-display);
+  font-weight:900;
+  letter-spacing:-.02em;
+  line-height:1.12;
+}
+/* Cairo is less condensed than Archivo Black; ease the tracking so
+   Arabic headings don't look cramped. */
+[dir="rtl"] h1,[dir="rtl"] h2,[dir="rtl"] h3,[dir="rtl"] .display{
+  letter-spacing:0;
+}
+
+/* Money figures: the design sets these large, heavy and tight. */
+.figure{
+  font-family:var(--font-display);
+  font-weight:900;
+  letter-spacing:-.03em;
+  font-variant-numeric:tabular-nums;
 }
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:2px}
@@ -101,23 +186,27 @@ button,input,select,textarea{font-family:inherit}
 }
 
 /* ── Header ─────────────────────────────────────────────────── */
+/* The design's header sits on the page ground, not on a raised white
+   bar — so the header takes --bg and loses its shadow. */
 .app-header{
   position:sticky;top:0;z-index:100;
-  background:var(--bg-card);border-bottom:1px solid var(--border);
+  background:var(--bg);border-bottom:1px solid var(--border);
   height:var(--header-height);
   display:flex;align-items:center;justify-content:space-between;
-  padding:0 14px;
-  box-shadow:0 1px 4px var(--shadow);
+  padding:0 16px;
   transition:background var(--ease-slow),border-color var(--ease-slow);
 }
+/* Wordmark in the display face, in ink — the design sets its brand as
+   type, not as a coloured logo. The mark keeps QATTAH's green. */
 .header-logo{
-  display:flex;align-items:center;gap:8px;
-  font-size:1.375rem;font-weight:900;color:var(--primary);letter-spacing:1px;
+  display:flex;align-items:center;gap:9px;
+  font-family:var(--font-display);
+  font-size:1.3rem;font-weight:900;color:var(--text);letter-spacing:-.01em;
   cursor:pointer;
 }
 .header-logo-icon{
-  width:34px;height:34px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));
-  border-radius:10px;display:flex;align-items:center;justify-content:center;
+  width:32px;height:32px;background:var(--primary);
+  border-radius:9px;display:flex;align-items:center;justify-content:center;
 }
 .header-logo-icon svg{width:20px;height:20px;color:#fff}
 .header-actions{display:flex;align-items:center;gap:2px}
@@ -149,8 +238,9 @@ button,input,select,textarea{font-family:inherit}
   padding:18px 16px 10px;
   display:flex;align-items:center;justify-content:space-between;
 }
-.page-title-bar h2{font-size:1.375rem;font-weight:800}
-.page-title-bar p{font-size:.8125rem;color:var(--text-muted);margin-top:2px}
+/* "Your Overview" / "Your Groups" scale from the design */
+.page-title-bar h2{font-size:1.75rem}
+.page-title-bar p{font-size:.8125rem;color:var(--text-muted);margin-top:4px}
 
 /* ── Bottom Navigation ──────────────────────────────────────── */
 .bottom-nav{
@@ -170,75 +260,100 @@ button,input,select,textarea{font-family:inherit}
 
 .nav-item{
   flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:3px;height:100%;border:none;background:transparent;cursor:pointer;
-  color:var(--text-light);font-size:.6rem;font-weight:600;
-  text-transform:uppercase;letter-spacing:.5px;
+  gap:4px;height:100%;border:none;background:transparent;cursor:pointer;
+  color:var(--text-light);font-size:.65rem;font-weight:600;
+  text-transform:none;letter-spacing:0;
   transition:color var(--ease);position:relative;padding:0;
 }
 .nav-item svg{width:22px;height:22px;transition:transform var(--ease)}
-.nav-item.active{color:var(--primary)}
-.nav-item.active svg{transform:scale(1.1)}
+/* Active state is ink, matching the design's black-on-cream emphasis */
+.nav-item.active{color:var(--text);font-weight:700}
+.nav-item.active svg{transform:scale(1.06)}
 .nav-item:active svg{transform:scale(.9)}
 .nav-item.active::after{
-  content:'';position:absolute;top:5px;width:4px;height:4px;
+  content:'';position:absolute;top:6px;width:4px;height:4px;
   background:var(--primary);border-radius:50%;
 }
 
-/* FAB in nav */
+/* FAB in nav — flat ink pill, no gradient or coloured glow */
 .nav-fab-wrap{flex:1;display:flex;align-items:center;justify-content:center;height:100%}
 .nav-fab-btn{
   width:54px;height:54px;
-  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  background:var(--ink);
   border-radius:var(--radius-full);border:none;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
-  box-shadow:0 4px 16px rgba(16,185,129,.45);
-  transition:transform var(--ease),box-shadow var(--ease);
+  box-shadow:0 4px 16px var(--shadow-md);
+  transition:transform var(--ease),box-shadow var(--ease),background var(--ease);
 }
-.nav-fab-btn:hover{box-shadow:0 6px 22px rgba(16,185,129,.55)}
+.nav-fab-btn:hover{background:var(--ink-soft);box-shadow:0 6px 22px var(--shadow-lg)}
 .nav-fab-btn:active{transform:scale(.9)}
-.nav-fab-btn svg{width:26px;height:26px;color:#fff}
+.nav-fab-btn svg{width:26px;height:26px;color:var(--bg-card)}
 
 /* ── Cards ───────────────────────────────────────────────────── */
+/* The design defines cards with a hairline and a whisper of shadow,
+   letting the white sit against cream rather than float above it. */
 .card{
   background:var(--bg-card);border-radius:var(--radius);
-  box-shadow:0 2px 8px var(--shadow);overflow:hidden;
+  border:1px solid var(--border);
+  box-shadow:0 1px 2px var(--shadow);overflow:hidden;
 }
-.card-p{padding:16px}
+.card-p{padding:18px}
 .card-interactive{
-  transition:transform var(--ease),box-shadow var(--ease);cursor:pointer;
+  transition:transform var(--ease),box-shadow var(--ease),border-color var(--ease);
+  cursor:pointer;
 }
-.card-interactive:active{transform:scale(.98);box-shadow:0 1px 4px var(--shadow)}
+.card-interactive:hover{border-color:var(--gray-300);box-shadow:0 4px 14px var(--shadow)}
+.card-interactive:active{transform:scale(.985)}
 
 /* ── Section header ─────────────────────────────────────────── */
 .section-header{
   display:flex;align-items:center;justify-content:space-between;
   padding:16px 16px 8px;
 }
-.section-title{font-size:1rem;font-weight:700;color:var(--text)}
+.section-title{font-family:var(--font-display);font-size:1.05rem;font-weight:900;letter-spacing:-.01em;color:var(--text)}
 .section-link{
   font-size:.8125rem;color:var(--primary);font-weight:600;
   background:none;border:none;cursor:pointer;padding:0;
 }
 
 /* ── Dashboard: hero balance card ──────────────────────────── */
+/* One ink anchor card carrying the number people open the app to see.
+   The design has no gradients or decorative blobs — a flat dark field
+   with a very large figure does the work. */
 .hero-card{
-  margin:14px 16px;padding:22px;
-  background:linear-gradient(135deg,#064E3B,var(--primary),#047857);
-  border-radius:var(--radius-lg);color:#fff;
+  margin:14px 16px;padding:24px;
+  background:var(--ink);
+  border-radius:var(--radius-lg);color:var(--bg-card);
   position:relative;overflow:hidden;
 }
-.hero-card::before,.hero-card::after{
-  content:'';position:absolute;border-radius:50%;pointer-events:none;
+.hero-label{
+  font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;
+  opacity:.62;margin-bottom:8px;font-weight:700;
 }
-.hero-card::before{width:130px;height:130px;background:rgba(255,255,255,.08);top:-30px;right:-30px}
-.hero-card::after {width: 80px;height: 80px;background:rgba(255,255,255,.05);bottom:-20px;left:30px}
-.hero-label{font-size:.75rem;letter-spacing:.8px;text-transform:uppercase;opacity:.8;margin-bottom:4px}
-.hero-amount{font-size:2.25rem;font-weight:900;letter-spacing:-1px;margin-bottom:4px}
-.hero-sub{font-size:.8rem;opacity:.7}
-.hero-row{display:flex;gap:16px;margin-top:18px}
-.hero-stat{flex:1;background:rgba(255,255,255,.12);border-radius:10px;padding:10px 12px}
-.hero-stat-label{font-size:.7rem;opacity:.75;letter-spacing:.4px;text-transform:uppercase}
-.hero-stat-val{font-size:1.125rem;font-weight:800;margin-top:2px}
+[dir="rtl"] .hero-label{letter-spacing:0;text-transform:none;font-size:.8rem}
+.hero-amount{
+  font-family:var(--font-display);font-size:2.6rem;font-weight:900;
+  letter-spacing:-.035em;margin-bottom:6px;line-height:1;
+  font-variant-numeric:tabular-nums;
+  /* SAR strings are far wider than "$45.20" — let the figure shrink
+     rather than spill out of the card. */
+  overflow-wrap:anywhere;
+}
+.hero-sub{font-size:.8rem;opacity:.65}
+.hero-row{display:flex;gap:10px;margin-top:20px}
+.hero-stat{
+  flex:1;min-width:0;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.10);
+  border-radius:var(--radius-sm);padding:12px 13px;
+}
+[data-theme="dark"] .hero-stat{background:rgba(0,0,0,.22);border-color:rgba(255,255,255,.07)}
+.hero-stat-label{font-size:.65rem;opacity:.62;letter-spacing:.06em;text-transform:uppercase;font-weight:700}
+[dir="rtl"] .hero-stat-label{letter-spacing:0;text-transform:none;font-size:.75rem}
+.hero-stat-val{
+  font-family:var(--font-display);font-size:1.0625rem;font-weight:900;
+  margin-top:4px;letter-spacing:-.02em;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;
+}
 
 /* ── Balance chips ──────────────────────────────────────────── */
 .balance-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px 14px}
@@ -257,21 +372,26 @@ button,input,select,textarea{font-family:inherit}
 /* ── Quick stats ─────────────────────────────────────────────── */
 .quick-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 16px 14px}
 .stat-card{
-  background:var(--bg-card);border-radius:var(--radius);padding:14px 10px;
-  text-align:center;box-shadow:0 1px 4px var(--shadow);
+  background:var(--bg-card);border-radius:var(--radius);padding:16px 10px;
+  text-align:center;border:1px solid var(--border);box-shadow:0 1px 2px var(--shadow);
 }
-.stat-val{font-size:1.375rem;font-weight:900;color:var(--text)}
-.stat-lbl{font-size:.65rem;color:var(--text-muted);margin-top:3px;text-transform:uppercase;letter-spacing:.4px}
+.stat-val{font-family:var(--font-display);font-size:1.375rem;font-weight:900;color:var(--text);letter-spacing:-.02em}
+.stat-lbl{font-size:.65rem;color:var(--text-muted);margin-top:4px;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+[dir="rtl"] .stat-lbl{letter-spacing:0;text-transform:none;font-size:.75rem}
 
 /* ── Bill list items ─────────────────────────────────────────── */
 .bills-list{display:flex;flex-direction:column;gap:8px;padding:0 16px 10px}
+/* Activity rows in the design are white pills on cream with a hairline
+   and generous padding — the amount pinned right and never truncated. */
 .bill-item{
   background:var(--bg-card);border-radius:var(--radius);
-  padding:13px 14px;display:flex;align-items:center;gap:12px;
-  box-shadow:0 1px 4px var(--shadow);cursor:pointer;
-  transition:transform var(--ease),box-shadow var(--ease);
+  padding:15px 16px;display:flex;align-items:center;gap:12px;
+  border:1px solid var(--border);
+  box-shadow:0 1px 2px var(--shadow);cursor:pointer;
+  transition:transform var(--ease),box-shadow var(--ease),border-color var(--ease);
 }
-.bill-item:active{transform:scale(.98)}
+.bill-item:hover{border-color:var(--gray-300);box-shadow:0 4px 14px var(--shadow)}
+.bill-item:active{transform:scale(.985)}
 .bill-cat-icon{
   width:44px;height:44px;border-radius:var(--radius);
   display:flex;align-items:center;justify-content:center;
@@ -280,8 +400,11 @@ button,input,select,textarea{font-family:inherit}
 .bill-info{flex:1;min-width:0}
 .bill-title{font-size:.9375rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bill-meta{font-size:.775rem;color:var(--text-muted);margin-top:2px}
-.bill-right{text-align:right;flex-shrink:0}
-.bill-amount{font-size:1rem;font-weight:800}
+/* flex-shrink:0 + white-space guard: the money must survive any width.
+   The reference design clipped these off-screen on mobile. */
+.bill-right{text-align:right;flex-shrink:0;white-space:nowrap}
+[dir="rtl"] .bill-right{text-align:left}
+.bill-amount{font-family:var(--font-display);font-size:1rem;font-weight:900;letter-spacing:-.02em}
 .bill-you{font-size:.75rem;margin-top:2px;font-weight:600}
 .bill-you.owe    {color:var(--danger)}
 .bill-you.lent   {color:var(--success)}
@@ -294,10 +417,13 @@ button,input,select,textarea{font-family:inherit}
   padding:12px 0;border-bottom:1px solid var(--divider);
 }
 .person-row:last-child{border-bottom:none}
+/* Pastel circle with dark initials, per the design's member stacks.
+   avatarEl() in app.js overrides the background per-person; this is the
+   default and the colour set it picks from lives there too. */
 .person-avatar{
   width:40px;height:40px;border-radius:50%;flex-shrink:0;
-  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
-  color:#fff;font-weight:700;font-size:.875rem;
+  background:var(--primary-light);
+  color:var(--primary-dark);font-weight:700;font-size:.8125rem;
   display:flex;align-items:center;justify-content:center;overflow:hidden;
 }
 .person-avatar img{width:100%;height:100%;object-fit:cover}
@@ -306,33 +432,50 @@ button,input,select,textarea{font-family:inherit}
 .person-amount.owe {color:var(--danger)}
 .person-amount.lent{color:var(--success)}
 .settle-btn{
-  padding:6px 12px;background:var(--primary-light);color:var(--primary-dark);
+  padding:8px 14px;background:var(--ink);color:var(--bg-card);
   border:none;border-radius:var(--radius-full);font-size:.75rem;font-weight:700;
-  cursor:pointer;transition:background var(--ease);
+  cursor:pointer;transition:background var(--ease);min-height:34px;
 }
-.settle-btn:hover{background:var(--primary);color:#fff}
+.settle-btn:hover{background:var(--ink-soft)}
 
-/* ── Groups grid ─────────────────────────────────────────────── */
-.groups-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 16px 14px}
+/* ── Groups grid ─────────────────────────────────────────────
+   The design runs 1 column on mobile, 2 on tablet, 3 on desktop.
+   One column on phones gives the name and balance room to breathe
+   instead of squeezing two cards across ~340px. */
+.groups-grid{display:grid;grid-template-columns:1fr;gap:12px;padding:0 16px 14px}
+@media(min-width:560px){.groups-grid{grid-template-columns:1fr 1fr}}
+@media(min-width:900px){.groups-grid{grid-template-columns:repeat(3,1fr);gap:16px}}
 .group-card{
-  background:var(--bg-card);border-radius:var(--radius);padding:16px;
-  box-shadow:0 1px 4px var(--shadow);cursor:pointer;
-  transition:transform var(--ease),box-shadow var(--ease);
+  background:var(--bg-card);border-radius:var(--radius);padding:18px;
+  border:1px solid var(--border);
+  box-shadow:0 1px 2px var(--shadow);cursor:pointer;
+  transition:transform var(--ease),box-shadow var(--ease),border-color var(--ease);
 }
-.group-card:active{transform:scale(.97)}
-.group-emoji{font-size:2rem;margin-bottom:8px;display:block}
-.group-name{font-size:.9375rem;font-weight:700;color:var(--text);margin-bottom:4px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.group-card:hover{border-color:var(--gray-300);box-shadow:0 4px 14px var(--shadow)}
+.group-card:active{transform:scale(.985)}
+.group-emoji{font-size:1.6rem;margin-bottom:10px;display:block}
+.group-name{
+  font-family:var(--font-display);font-size:1.0625rem;font-weight:900;
+  letter-spacing:-.01em;color:var(--text);margin-bottom:6px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
 .group-meta{font-size:.75rem;color:var(--text-muted)}
-.group-balance{margin-top:10px;font-size:.875rem;font-weight:700}
-.group-balance.positive{color:var(--success)}
-.group-balance.negative{color:var(--danger)}
-.group-balance.neutral {color:var(--text-muted)}
-.group-card-add{
-  background:transparent;border:2px dashed var(--border);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:6px;color:var(--primary);min-height:120px;
+
+/* Balance as a tinted pill, the design's group-card treatment. The
+   tints are the AA-safe ones, so this reads at small sizes. */
+.group-balance{
+  margin-top:12px;font-size:.75rem;font-weight:700;
+  display:inline-block;padding:5px 10px;border-radius:var(--radius-full);
 }
+.group-balance.positive{color:var(--success);background:var(--success-light)}
+.group-balance.negative{color:var(--danger); background:var(--danger-light)}
+.group-balance.neutral {color:var(--text-muted);background:var(--bg-input)}
+.group-card-add{
+  background:transparent;border:1.5px dashed var(--gray-300);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:8px;color:var(--text-muted);min-height:120px;box-shadow:none;
+}
+.group-card-add:hover{border-color:var(--text-muted);color:var(--text)}
 .group-card-add svg{width:28px;height:28px}
 .group-card-add span{font-size:.875rem;font-weight:600}
 
@@ -410,25 +553,31 @@ canvas{max-width:100%}
 
 /* ── Forms ───────────────────────────────────────────────────── */
 .form-group{margin-bottom:16px}
-.form-label{display:block;font-size:.875rem;font-weight:600;color:var(--text);margin-bottom:6px}
+/* Small-caps labels, matching the design's "YOU OWE" treatment */
+.form-label{
+  display:block;font-size:.7rem;font-weight:700;color:var(--text-muted);
+  margin-bottom:7px;text-transform:uppercase;letter-spacing:.07em;
+}
+[dir="rtl"] .form-label{letter-spacing:0;text-transform:none;font-size:.8rem}
 .form-label .req{color:var(--danger)}
 .form-control{
-  width:100%;padding:12px 14px;
-  background:var(--bg-input);border:1.5px solid var(--border);
+  width:100%;padding:13px 15px;min-height:46px;
+  background:var(--bg-card);border:1px solid var(--border);
   border-radius:var(--radius);font-size:.9375rem;color:var(--text);
+  font-family:var(--font-body);
   transition:border-color var(--ease),box-shadow var(--ease);outline:none;
   -webkit-appearance:none;appearance:none;
 }
 .form-control:focus{
-  border-color:var(--primary);background:var(--bg-card);
-  box-shadow:0 0 0 3px rgba(16,185,129,.15);
+  border-color:var(--ink);background:var(--bg-card);
+  box-shadow:0 0 0 3px var(--primary-light);
 }
 .form-control::placeholder{color:var(--text-light)}
-.form-control.is-error{border-color:var(--danger);box-shadow:0 0 0 3px rgba(239,68,68,.1)}
+.form-control.is-error{border-color:var(--danger);box-shadow:0 0 0 3px var(--danger-light)}
 .form-error{font-size:.8rem;color:var(--danger);margin-top:5px}
 .form-hint {font-size:.8rem;color:var(--text-muted);margin-top:4px}
 select.form-control{
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23615B50' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 12px center;padding-right:38px;cursor:pointer;
 }
 textarea.form-control{resize:vertical;min-height:80px}
@@ -445,40 +594,47 @@ textarea.form-control{resize:vertical;min-height:80px}
 .input-eye svg{width:18px;height:18px}
 
 /* ── Buttons ─────────────────────────────────────────────────── */
+/* Pill buttons, flat fills, no gradients — straight from the design's
+   "+ New Group" treatment. Primary is ink, not the brand green. */
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
-  padding:12px 20px;border-radius:var(--radius);font-size:.9375rem;font-weight:700;
-  border:none;cursor:pointer;transition:all var(--ease);
-  text-decoration:none;font-family:inherit;letter-spacing:.2px;
+  padding:13px 22px;border-radius:var(--radius-full);font-size:.9375rem;font-weight:700;
+  border:1px solid transparent;cursor:pointer;transition:all var(--ease);
+  text-decoration:none;font-family:var(--font-body);letter-spacing:0;
+  min-height:46px;                       /* comfortably over the 44px target */
   -webkit-tap-highlight-color:transparent;
 }
 .btn:active{transform:scale(.97)}
-.btn:disabled{opacity:.55;cursor:not-allowed;transform:none!important}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
 .btn svg{width:18px;height:18px}
 .btn-block{width:100%}
 
 .btn-primary{
-  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
-  color:#fff;box-shadow:0 4px 14px rgba(16,185,129,.3);
+  background:var(--ink);
+  color:var(--bg-card);
+  box-shadow:0 2px 8px var(--shadow);
 }
-.btn-primary:hover:not(:disabled){box-shadow:0 6px 22px rgba(16,185,129,.42)}
+.btn-primary:hover:not(:disabled){background:var(--ink-soft);box-shadow:0 4px 16px var(--shadow-md)}
 
 .btn-secondary{
-  background:var(--bg-input);color:var(--text);
-  border:1.5px solid var(--border);
+  background:transparent;color:var(--text);
+  border-color:var(--gray-300);
 }
-.btn-secondary:hover:not(:disabled){background:var(--border)}
+.btn-secondary:hover:not(:disabled){background:var(--bg-input);border-color:var(--text-light)}
 
 .btn-danger{background:var(--danger);color:#fff}
-.btn-ghost{background:transparent;color:var(--primary)}
-.btn-ghost:hover:not(:disabled){background:var(--primary-light)}
+.btn-danger:hover:not(:disabled){filter:brightness(.92)}
+.btn-ghost{background:transparent;color:var(--text-muted)}
+.btn-ghost:hover:not(:disabled){background:var(--bg-input);color:var(--text)}
 .btn-accent{background:var(--accent);color:#fff}
 
-/* Loading spinner in btn */
+/* Loading spinner in btn — tinted to the button it sits in, since
+   primary is now a light-on-dark pill in light mode and the reverse
+   in dark mode. */
 .btn.loading .btn-text{display:none}
 .btn.loading::after{
   content:'';width:17px;height:17px;
-  border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;
+  border:2.5px solid currentColor;border-top-color:transparent;opacity:.85;
   border-radius:50%;animation:spin .7s linear infinite;
 }
 
@@ -488,10 +644,10 @@ textarea.form-control{resize:vertical;min-height:80px}
   padding:4px 10px;border-radius:var(--radius-full);font-size:.75rem;font-weight:600;
 }
 .chip-green  {background:var(--primary-light);color:var(--primary-dark)}
-.chip-amber  {background:#FEF3C7;color:#B45309}
-.chip-red    {background:#FEE2E2;color:#B91C1C}
+.chip-amber  {background:var(--warning-light);color:var(--accent-dark)}
+.chip-red    {background:var(--danger-light);color:var(--danger)}
 .chip-gray   {background:var(--bg-input);color:var(--text-muted)}
-.chip-blue   {background:#DBEAFE;color:#1D4ED8}
+.chip-blue   {background:var(--info-light);color:var(--info)}
 [data-theme="dark"] .chip-gray{background:var(--gray-700);color:var(--gray-300)}
 
 /* ── Modal (bottom sheet) ────────────────────────────────────── */
@@ -517,7 +673,7 @@ textarea.form-control{resize:vertical;min-height:80px}
   display:flex;align-items:center;justify-content:space-between;
   padding:14px 20px 12px;border-bottom:1px solid var(--border);
 }
-.modal-title{font-size:1.125rem;font-weight:800}
+.modal-title{font-family:var(--font-display);font-size:1.3rem;font-weight:900;letter-spacing:-.01em}
 .modal-body{padding:18px 20px}
 .modal-footer{
   padding:14px 20px;border-top:1px solid var(--border);
@@ -540,9 +696,9 @@ textarea.form-control{resize:vertical;min-height:80px}
   max-width:380px;width:100%;pointer-events:all;
   animation:toastIn .3s ease forwards;
 }
-.toast.success{background:#059669}
-.toast.error  {background:#DC2626}
-.toast.warning{background:#D97706}
+.toast.success{background:#2C5239}
+.toast.error  {background:#A8442A}
+.toast.warning{background:#915B14}
 .toast.hiding {animation:toastOut .3s ease forwards}
 @keyframes toastIn {from{opacity:0;transform:translateY(-10px) scale(.96)} to{opacity:1;transform:none}}
 @keyframes toastOut{from{opacity:1;transform:none} to{opacity:0;transform:translateY(-10px) scale(.96)}}
@@ -550,7 +706,7 @@ textarea.form-control{resize:vertical;min-height:80px}
 /* ── Splash screen ───────────────────────────────────────────── */
 .splash{
   position:fixed;inset:0;
-  background:linear-gradient(145deg,#022C22,#065F46,#047857);
+  background:linear-gradient(160deg,#1F1C17,#12100C);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   z-index:999;transition:opacity .5s ease,transform .5s ease;
 }
@@ -562,7 +718,7 @@ textarea.form-control{resize:vertical;min-height:80px}
   border:2px solid rgba(255,255,255,.2);backdrop-filter:blur(10px);
 }
 .splash-icon svg{width:56px;height:56px;color:#fff}
-.splash-name{font-size:2.75rem;font-weight:900;color:#fff;letter-spacing:3px}
+.splash-name{font-family:var(--font-display);font-size:2.75rem;font-weight:900;color:#fff;letter-spacing:-.01em}
 .splash-tag{font-size:.9375rem;color:rgba(255,255,255,.7);letter-spacing:1px;margin-top:-6px}
 .splash-dots{position:absolute;bottom:80px;display:flex;gap:8px}
 .splash-dot{
@@ -577,7 +733,7 @@ textarea.form-control{resize:vertical;min-height:80px}
 /* ── Auth pages ─────────────────────────────────────────────── */
 .auth-page{min-height:100vh;background:var(--bg);display:flex;flex-direction:column}
 .auth-top{
-  background:linear-gradient(145deg,#022C22,#065F46);
+  background:linear-gradient(160deg,#1F1C17,#12100C);
   padding:56px 24px 40px;display:flex;flex-direction:column;align-items:center;text-align:center;
 }
 .auth-logo-wrap{
@@ -586,11 +742,11 @@ textarea.form-control{resize:vertical;min-height:80px}
   border:2px solid rgba(255,255,255,.2);
 }
 .auth-logo-wrap svg{width:38px;height:38px;color:#fff}
-.auth-app-name{font-size:1.75rem;font-weight:900;color:#fff;letter-spacing:2px}
+.auth-app-name{font-family:var(--font-display);font-size:1.85rem;font-weight:900;color:#fff;letter-spacing:-.01em}
 .auth-app-tag{font-size:.875rem;color:rgba(255,255,255,.7);margin-top:4px}
 
 .auth-form-wrap{flex:1;padding:28px 24px 32px;max-width:440px;margin:0 auto;width:100%}
-.auth-form-title{font-size:1.5rem;font-weight:800;margin-bottom:4px}
+.auth-form-title{font-size:1.6rem;margin-bottom:6px}
 .auth-form-sub{font-size:.875rem;color:var(--text-muted);margin-bottom:26px}
 .auth-switch{text-align:center;margin-top:18px;font-size:.875rem;color:var(--text-muted)}
 .auth-switch a{color:var(--primary);font-weight:700}
@@ -832,7 +988,7 @@ textarea.form-control{resize:vertical;min-height:80px}
   padding:9px 12px;border-radius:var(--radius-sm);line-height:1.4;
 }
 .rc-ai:empty{display:none}
-.rc-ai.on { background:rgba(16,185,129,.12); color:var(--primary); }
+.rc-ai.on { background:var(--success-light); color:var(--primary-dark); }
 .rc-ai.off{ background:var(--bg-input); color:var(--text-muted); }
 .rc-ai code{ background:rgba(0,0,0,.08); padding:1px 5px; border-radius:4px; font-size:.74rem; }
 .rc-ai-dot{ width:8px;height:8px;border-radius:50%;flex-shrink:0;background:currentColor; }
@@ -855,7 +1011,7 @@ textarea.form-control{resize:vertical;min-height:80px}
   display:flex;align-items:center;justify-content:center;cursor:pointer;
   transition:background var(--ease),border-color var(--ease);
 }
-.qstep-btn:hover{border-color:var(--primary);color:var(--primary)}
+.qstep-btn:hover{border-color:var(--ink);color:var(--text);background:var(--bg-input)}
 .qstep-btn:active{transform:scale(.92)}
 .qstep-val{min-width:22px;text-align:center;font-weight:800;font-size:1rem}
 
@@ -866,7 +1022,7 @@ textarea.form-control{resize:vertical;min-height:80px}
   padding:16px;border:1.5px solid var(--border);border-radius:var(--radius);
   background:var(--bg-card);cursor:pointer;transition:border-color var(--ease),background var(--ease);
 }
-.fab-choice:hover{border-color:var(--primary);background:var(--primary-light)}
+.fab-choice:hover{border-color:var(--ink);background:var(--bg-input)}
 .fab-choice-ic{font-size:1.8rem;flex-shrink:0}
 .fab-choice-txt{display:flex;flex-direction:column;font-weight:700;color:var(--text)}
 .fab-choice-txt small{font-weight:500;color:var(--text-muted);font-size:.78rem;margin-top:2px}
@@ -874,7 +1030,7 @@ textarea.form-control{resize:vertical;min-height:80px}
 /* ── Capture / upload ── */
 .receipt-capture{display:flex;flex-direction:column;gap:14px}
 .rc-dropzone{
-  border:2px dashed var(--border);border-radius:var(--radius);
+  border:1.5px dashed var(--gray-300);border-radius:var(--radius);
   min-height:180px;display:flex;align-items:center;justify-content:center;
   overflow:hidden;background:var(--bg-input);
 }
@@ -899,7 +1055,7 @@ textarea.form-control{resize:vertical;min-height:80px}
 }
 @media(min-width:520px){.rcp-dialog{border-radius:var(--radius-lg)}}
 .rcp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.rcp-head h3{font-size:1.2rem;font-weight:800}
+.rcp-head h3{font-size:1.45rem}
 .rcp-meta{margin-bottom:16px}
 .rcp-items{display:flex;flex-direction:column;gap:10px;margin-bottom:10px}
 .rcp-row{
@@ -913,14 +1069,14 @@ textarea.form-control{resize:vertical;min-height:80px}
   font-size:.78rem;color:var(--text-muted);font-weight:600}
 .rcp-total{display:flex;justify-content:space-between;align-items:center;
   padding:14px 4px;border-top:1px solid var(--divider);margin-top:6px;font-size:1.05rem}
-.rcp-total strong{font-size:1.2rem;color:var(--primary)}
+.rcp-total strong{font-family:var(--font-display);font-size:1.35rem;font-weight:900;letter-spacing:-.02em;color:var(--text)}
 .rcp-foot{display:flex;gap:10px;margin-top:8px}
 .rcp-foot .btn{flex:1}
 
 /* ── Share screen ── */
 .share-card{text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
-.share-rest{font-size:1.25rem;font-weight:800}
-.share-total{font-size:1.6rem;font-weight:800;color:var(--primary)}
+.share-rest{font-family:var(--font-display);font-size:1.35rem;font-weight:900;letter-spacing:-.02em}
+.share-total{font-family:var(--font-display);font-size:2rem;font-weight:900;letter-spacing:-.03em;color:var(--text)}
 .qr-wrap{background:#fff;padding:14px;border-radius:var(--radius);display:inline-flex;
   align-items:center;justify-content:center;min-height:160px;min-width:160px}
 .qr-wrap canvas{display:block}
@@ -934,39 +1090,47 @@ textarea.form-control{resize:vertical;min-height:80px}
 /* ════════════════════════════════════════════════════════════════
    SHARED RECEIPT PAGE  (receipt.html)
 ═════════════════════════════════════════════════════════════════ */
-.r-brand{display:flex;align-items:center;gap:10px;padding:18px 16px;font-weight:800;font-size:1.15rem}
+.r-brand{
+  display:flex;align-items:center;gap:10px;padding:18px 16px;
+  font-family:var(--font-display);font-weight:900;font-size:1.2rem;letter-spacing:-.01em;
+}
 .r-brand-icon{
-  width:34px;height:34px;border-radius:10px;background:var(--primary);
+  width:32px;height:32px;border-radius:9px;background:var(--primary);
   display:flex;align-items:center;justify-content:center;
 }
 .r-brand-icon svg{width:20px;height:20px}
+/* Ink summary card — this is the first thing a guest sees, so it gets
+   the same anchor treatment as the dashboard hero. */
 .r-summary{
-  margin:0 16px 16px;padding:20px;border-radius:var(--radius-lg);text-align:center;
-  background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;
+  margin:0 16px 16px;padding:24px 20px;border-radius:var(--radius-lg);text-align:center;
+  background:var(--ink);color:var(--bg-card);
 }
-.r-rest{font-size:1.35rem;font-weight:800}
-.r-sub{font-size:.82rem;opacity:.9;margin-top:2px}
-.r-grand{font-size:2rem;font-weight:800;margin-top:10px}
-.r-section-title{font-size:1rem;font-weight:800;margin:18px 16px 10px}
+.r-rest{font-family:var(--font-display);font-size:1.4rem;font-weight:900;letter-spacing:-.02em}
+.r-sub{font-size:.8rem;opacity:.62;margin-top:4px}
+.r-grand{
+  font-family:var(--font-display);font-size:2.2rem;font-weight:900;
+  letter-spacing:-.035em;margin-top:12px;line-height:1;overflow-wrap:anywhere;
+}
+.r-section-title{font-family:var(--font-display);font-size:1.1rem;font-weight:900;letter-spacing:-.01em;margin:22px 16px 10px}
 .r-items{margin:0 16px;padding:6px 0}
 .r-item{display:flex;align-items:center;justify-content:space-between;gap:12px;
   padding:12px 16px;border-bottom:1px solid var(--divider)}
 .r-item:last-child{border-bottom:none}
-.r-item-name{font-weight:700;font-size:.95rem}
+.r-item-name{font-weight:700;font-size:.95rem;overflow-wrap:anywhere}
 .r-item-meta{font-size:.78rem;color:var(--text-muted);margin-top:2px}
 .r-order{margin:14px 16px 0}
-.r-order-title{font-weight:800;margin-bottom:10px}
+.r-order-title{font-family:var(--font-display);font-weight:900;font-size:1.05rem;letter-spacing:-.01em;margin-bottom:12px}
 .r-order-line{display:flex;justify-content:space-between;font-size:.9rem;padding:5px 0;color:var(--text)}
 .r-order-empty{color:var(--text-muted);font-size:.85rem;padding:4px 0}
 .r-order-total{display:flex;justify-content:space-between;align-items:center;
   border-top:1px solid var(--divider);margin-top:8px;padding-top:12px;font-weight:700}
-.r-order-total strong{font-size:1.25rem;color:var(--primary)}
+.r-order-total strong{font-family:var(--font-display);font-size:1.4rem;font-weight:900;letter-spacing:-.02em;color:var(--text)}
 .r-confirm{display:flex;align-items:center;gap:10px;margin:16px;font-size:.9rem;cursor:pointer}
-.r-confirm input{width:20px;height:20px;accent-color:var(--primary);flex-shrink:0}
+.r-confirm input{width:20px;height:20px;accent-color:var(--ink);flex-shrink:0}
 .r-pay{margin:0 16px 8px;width:calc(100% - 32px)}
 .r-gate{margin:0 16px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
 .r-gate-emoji{font-size:2.6rem}
-.r-gate h3{font-size:1.1rem;font-weight:800}
+.r-gate h3{font-size:1.2rem}
 .r-gate p{font-size:.85rem;color:var(--text-muted);max-width:300px}
 .r-gate .btn{width:100%}
 .r-methods{display:flex;flex-wrap:wrap;gap:10px;margin:0 16px 16px}
@@ -978,10 +1142,10 @@ textarea.form-control{resize:vertical;min-height:80px}
 .r-method small{font-weight:500;color:var(--text-light);font-size:.7rem}
 .r-paid{text-align:center;margin:40px 16px 0;display:flex;flex-direction:column;gap:12px;align-items:center}
 .r-paid-check{
-  width:72px;height:72px;border-radius:var(--radius-full);background:var(--primary);
+  width:72px;height:72px;border-radius:var(--radius-full);background:var(--success);
   color:#fff;font-size:2.4rem;display:flex;align-items:center;justify-content:center;font-weight:800;
 }
-.r-paid h3{font-size:1.3rem;font-weight:800}
+.r-paid h3{font-size:1.45rem}
 .r-paid p{color:var(--text-muted);font-size:.9rem;line-height:1.6}
 .r-paid .btn{width:100%;margin-top:8px}
 
@@ -1088,7 +1252,7 @@ textarea.form-control{resize:vertical;min-height:80px}
   .auth-top::after{
     content:'';position:absolute;inset:auto -120px -160px auto;
     width:420px;height:420px;border-radius:50%;
-    background:radial-gradient(circle,rgba(16,185,129,.35),transparent 70%);
+    background:radial-gradient(circle,rgba(58,107,74,.55),transparent 70%);
     pointer-events:none;
   }
   .auth-brand{position:relative;z-index:1}
@@ -1220,3 +1384,16 @@ textarea.form-control{resize:vertical;min-height:80px}
    shrink the block to nothing before Google measures it — stretch it so
    the Google button matches the full-width Login/Register beneath it. */
 .r-gate .g-block{margin-bottom:2px;width:100%;align-self:stretch}
+
+/* ── Claim page: protect the money ───────────────────────────────
+   The reference design let amounts slide off the right edge at 390px.
+   These rules make the label the thing that gives way, never the
+   figure, on every row that pairs text with a number. */
+.r-item{align-items:center}
+.r-item-info{min-width:0;flex:1}
+.r-order-line{gap:12px;align-items:baseline}
+.r-order-line > span:first-child{min-width:0;overflow-wrap:anywhere}
+.r-order-line > span:last-child{flex-shrink:0;white-space:nowrap;font-variant-numeric:tabular-nums}
+.r-order-total{gap:12px}
+.r-order-total strong{flex-shrink:0;white-space:nowrap}
+.bill-info{min-width:0}

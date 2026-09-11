@@ -40,8 +40,33 @@ A full-stack mobile-first web application for managing shared expenses between f
 - **Analytics** — Monthly spending chart, category breakdown, top expenses
 - **Notifications** — Real-time alerts when added to bills or groups
 - **Payment History** — Full log of all settlements
-- **Dark / Light Mode** — Persisted per user
-- **Arabic / English** — RTL and LTR support
+- **Dark / Light Mode** — Persisted per user. The dark palette is warm
+  charcoal rather than the usual cold navy, so the light theme's warmth
+  survives the switch
+- **Arabic / English** — RTL and LTR support, with Cairo standing in for the
+  Latin display face so Arabic headings keep the same weight relationship
+
+---
+
+## Design language
+
+The visual language is adapted from a "SplitEasy" Figma Make concept: a warm
+cream ground instead of grey-white, near-black ink for primary actions, a
+heavy condensed display face (Archivo Black) against a quiet body sans,
+pill buttons, and hairline-bordered cards with almost no shadow.
+
+Two deliberate departures from that reference, both documented at the top of
+`assets/css/style.css`:
+
+1. **Contrast.** Its terracotta and green reach only ~3.9:1 and ~4.2:1 on the
+   cream background — fine for the giant numerals they were used for, but
+   failing WCAG AA for the small pills and labels QATTAH also needs them in.
+   Both are darkened here to clear 4.5:1.
+2. **Coverage.** The reference covers three screens. Everything else — the
+   scan flow, the confirm-items dialog, QR share, the public claim page,
+   profile, analytics, admin, auth — was designed in the same language rather
+   than copied, and the mobile bottom-nav architecture was kept because
+   QATTAH is used standing at a restaurant table, not at a desk.
 
 ---
 

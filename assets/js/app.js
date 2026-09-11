@@ -19,7 +19,7 @@ const i18n = {
     add_bill:'Add Bill', save:'Save', cancel:'Cancel', delete:'Delete',
     edit:'Edit', settle:'Settle', loading:'Loading...',
     no_bills:'No bills yet', no_groups:'No groups yet',
-    owe_me:'Owe Me', i_owe:'I Owe', net:'Net Balance',
+    owe_me:'Owe Me', i_owe:'I Owe', net:'Net Balance', net_balance:'Net Balance',
     total_spent:'Total Spent', bill_count:'Bills', group_count:'Groups',
     logout:'Logout', settings:'Settings', theme:'Theme', language:'Language',
     dark:'Dark', light:'Light', english:'English', arabic:'Arabic',
@@ -40,7 +40,7 @@ const i18n = {
     add_bill:'إضافة فاتورة', save:'حفظ', cancel:'إلغاء', delete:'حذف',
     edit:'تعديل', settle:'تسوية', loading:'جاري التحميل...',
     no_bills:'لا توجد فواتير', no_groups:'لا توجد مجموعات',
-    owe_me:'مديونون لي', i_owe:'مديون لهم', net:'الرصيد الصافي',
+    owe_me:'مديونون لي', i_owe:'مديون لهم', net:'الرصيد الصافي', net_balance:'الرصيد الصافي',
     total_spent:'إجمالي الإنفاق', bill_count:'الفواتير', group_count:'المجموعات',
     logout:'تسجيل الخروج', settings:'الإعدادات', theme:'المظهر', language:'اللغة',
     dark:'داكن', light:'فاتح', english:'الإنجليزية', arabic:'العربية',
@@ -134,11 +134,16 @@ function initials(name = '') {
   return name.split(' ').map(n=>n[0]).slice(0,2).join('').toUpperCase();
 }
 
+/* Soft pastel circles with dark initials, matching the member stacks in
+   the design. Deliberately fixed rather than themed: a pale disc with ink
+   initials reads correctly on both the cream and the charcoal ground, and
+   keeping one person one colour across themes aids recognition. */
+const AVATAR_TINTS = ['#DCE8DD','#F6E3D5','#DDE5EF','#E7E0EF','#F0E8D5','#E2EAE8'];
+
 function avatarEl(name, avatar, size = 40) {
   if (avatar) return `<img src="${avatar}" alt="${name}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover">`;
-  const colors = ['#10B981','#3B82F6','#8B5CF6','#F59E0B','#EF4444','#06B6D4'];
-  const color  = colors[name.charCodeAt(0) % colors.length];
-  return `<div class="person-avatar" style="background:${color};width:${size}px;height:${size}px">${initials(name)}</div>`;
+  const tint = AVATAR_TINTS[(name.charCodeAt(0) || 0) % AVATAR_TINTS.length];
+  return `<div class="person-avatar" style="background:${tint};color:#1A1815;width:${size}px;height:${size}px">${initials(name)}</div>`;
 }
 
 // ── Router ────────────────────────────────────────────────────
