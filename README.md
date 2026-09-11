@@ -151,6 +151,61 @@ http://localhost/qattah/login.html
 
 ---
 
+## Deploying to a real host
+
+QATTAH is a PHP + MySQL app, so it needs a host that runs both. **Vercel,
+Netlify and GitHub Pages cannot run it** — they serve static files only, so
+every `api/*.php` request either 404s or is handed to the browser as raw
+source text. That is not just broken, it is a credential leak: anything in
+`api/config/` becomes publicly readable.
+
+Suitable hosts: Hostinger, Namecheap, SiteGround, InfinityFree or
+000webhost (free), or any cPanel shared host. All of them run Apache + PHP
++ MySQL, which is exactly what this app expects.
+
+### Steps
+
+1. **Upload the project** to the host's web root (`public_html`).
+2. **Create a MySQL database** in the host's control panel, then import, in
+   order: `database.sql`, `database_receipts.sql`, `database_admin.sql`,
+   `database_update_v2.sql`, `database_update_v3.sql`.
+3. **Create the two local config files** — neither is in the repo, by
+   design, because they hold secrets:
+   ```
+   cp api/config/database.example.php api/config/database.php
+   cp api/config/ai.example.php       api/config/ai.php
+   ```
+   Put the host's DB name, user and password in `database.php`, and your
+   Gemini key in `ai.php`.
+4. **Set the Google Client ID** in `api/config/google.php`, and in Google
+   Cloud Console add your live origins to *Authorised JavaScript origins*:
+   ```
+   https://qattah.online
+   https://www.qattah.online
+   ```
+   Both, with no trailing path. Google matches these exactly, so missing
+   the `www` variant is the usual reason the button appears but sign-in
+   then fails.
+5. **Check `.htaccess` survived the upload.** FTP clients hide dotfiles by
+   default. The root `.htaccess` forces HTTPS and refuses to serve `.php`
+   as text if the PHP handler is ever missing; `api/config/.htaccess`
+   blocks direct access to the config files. Without them you lose those
+   protections silently.
+6. **Point your domain** at the host (update the nameservers or the A
+   record at your registrar), and **delete any previous Vercel/Netlify
+   deployment** — otherwise it keeps serving your PHP source publicly.
+
+### Verifying it worked
+
+```
+curl -s https://your-domain/api/auth/google.php
+```
+Should return JSON (`{"success":true,...}`). If it returns PHP source
+starting with `<?php`, PHP is not executing and you must not leave the
+site up until that is fixed.
+
+---
+
 ## Quick Start (WAMP)
 
 Same steps, but copy to:

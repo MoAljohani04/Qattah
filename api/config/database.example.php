@@ -1,7 +1,8 @@
 <?php
 /**
- * QATTAH — Database Connection (Singleton PDO)
- * Edit host/dbname/username/password to match your environment.
+ * TEMPLATE — copy to api/config/database.php and fill in your own
+ * credentials. database.php is gitignored so a real password never
+ * reaches the repo. On XAMPP the defaults below work as-is.
  */
 class Database {
     private static ?Database $instance = null;
@@ -9,8 +10,8 @@ class Database {
 
     private string $host     = 'localhost';
     private string $dbname   = 'qattah_db';
-    private string $username = 'root';
-    private string $password = '';
+    private string $username = 'root';          // ← your DB user on the host
+    private string $password = '';              // ← your DB password on the host
     private string $charset  = 'utf8mb4';
 
     private function __construct() {

@@ -5,7 +5,25 @@
 
 function setHeaders(): void {
     header('Content-Type: application/json; charset=UTF-8');
-    header('Access-Control-Allow-Origin: http://localhost');
+
+    /* The front-end and the API are served from the same origin, so the
+     * only cross-origin request we ever want to allow is the page's own.
+     * Echoing back the request's origin only when it matches this host
+     * keeps that working on localhost, on qattah.online, and on any
+     * future domain, without ever becoming the wildcard that would let
+     * another site make credentialed calls on a user's behalf. */
+    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+    if ($origin !== '') {
+        $host = $_SERVER['HTTP_HOST'] ?? '';
+        $self = parse_url($origin, PHP_URL_HOST) ?? '';
+        // Same host, or any localhost port during development.
+        $isSelf  = ($self !== '' && strcasecmp($self, preg_replace('/:\d+$/', '', $host)) === 0);
+        $isLocal = in_array($self, ['localhost', '127.0.0.1'], true);
+        if ($isSelf || $isLocal) {
+            header('Access-Control-Allow-Origin: ' . $origin);
+            header('Vary: Origin');
+        }
+    }
     header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
     header('Access-Control-Allow-Headers: Content-Type');
     header('Access-Control-Allow-Credentials: true');

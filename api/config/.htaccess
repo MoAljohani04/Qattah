@@ -1,0 +1,20 @@
+# Defence in depth: nothing in api/config/ should ever be fetched directly.
+#
+# These files are only ever reached through require_once from an endpoint
+# one directory up, so denying direct HTTP access costs nothing and means
+# a future server misconfiguration — a host that stops executing PHP and
+# starts serving it as text, which is exactly what happened on Vercel —
+# cannot hand out database credentials or the AI key.
+#
+# Apache 2.4
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+
+# Apache 2.2
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>
+
+Options -Indexes

@@ -1,8 +1,11 @@
 /.claude
 
-# AI provider keys stay local — copy api/config/ai.example.php to
-# api/config/ai.php and paste your own key there.
+# Local config — copy the .example.php files and fill in your own values.
+# Keeping these out of the repo means a real API key or DB password can
+# never be committed, and can never be served as text by a misconfigured
+# host (which is exactly what happened on Vercel).
 /api/config/ai.php
+/api/config/database.php
 
 # Uploaded receipt photos are user data, not source.
 /uploads/receipts/*

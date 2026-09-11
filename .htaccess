@@ -1,0 +1,53 @@
+# ============================================================
+#  QATTAH — Apache configuration for shared PHP hosting
+#  Safe to leave in place on XAMPP too; every block is guarded.
+# ============================================================
+
+Options -Indexes
+
+# ── Force HTTPS in production ────────────────────────────────
+# Skipped on localhost so XAMPP keeps working over plain http.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP_HOST} !^localhost [NC]
+    RewriteCond %{HTTP_HOST} !^127\.0\.0\.1 [NC]
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# ── Never serve PHP as text ──────────────────────────────────
+# If the PHP handler is ever missing, Apache would fall back to serving
+# .php files as plain text and leak every credential in them. Refusing
+# to serve them at all is the safe failure mode.
+<IfModule !mod_php.c>
+    <IfModule !mod_php7.c>
+        <IfModule !mod_php8.c>
+            <IfModule !mod_proxy_fcgi.c>
+                <FilesMatch "\.php$">
+                    <IfModule mod_authz_core.c>
+                        Require all denied
+                    </IfModule>
+                </FilesMatch>
+            </IfModule>
+        </IfModule>
+    </IfModule>
+</IfModule>
+
+# ── Block dotfiles and SQL dumps ─────────────────────────────
+# database.sql and friends contain the full schema and seed users.
+<FilesMatch "^\.|\.(sql|md|log|bak|ini|yml|yaml)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# ── Baseline security headers ────────────────────────────────
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
