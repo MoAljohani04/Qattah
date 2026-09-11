@@ -20,10 +20,18 @@ A full-stack mobile-first web application for managing shared expenses between f
 
 ## Features
 
-- **Receipt → QR Split** — Scan/upload a receipt, confirm items in a popup, generate a share link + QR; friends sign in, pick what they ordered, see a live total, and pay their share
+- **Receipt → QR Split** — Every split starts with an AI scan: photograph the
+  receipt, the model reads the line items, you confirm or correct them in a
+  popup, then share a link + QR. Friends sign in, pick what they ordered, see a
+  live total, and pay their share
+- **Shareable items** — Tick an item in the confirm dialog and it is split
+  evenly between everyone who picks it (mezze, a big pizza, a pitcher) instead
+  of being claimed unit by unit. The AI pre-ticks the obvious ones
+- **Group scans** — Scan straight into a group; every member is notified and
+  the receipt is listed on the group page
 - **Authentication** — Register, login, logout, session-based security
 - **Dashboard** — Net balance, who owes you, who you owe, recent bills
-- **Bills** — Add bills with equal or custom splits, upload receipts, settle debts
+- **Bills** — Created from scans; equal or custom splits, editable after the fact
 - **Groups** — Create groups, manage members, track group expenses
 - **Analytics** — Monthly spending chart, category breakdown, top expenses
 - **Notifications** — Real-time alerts when added to bills or groups
@@ -51,8 +59,20 @@ Place the entire `Qattah` folder there.
 4. Choose `database.sql` → click **Go**
 5. Import again, this time choosing `database_receipts.sql` (adds the
    receipt-sharing tables — safe to run on an existing DB, only adds tables)
+6. Import once more, choosing `database_update_v2.sql` (group receipts +
+   shareable items — safe to re-run, it guards every change)
 
-### 4. Configure database credentials
+### 4. Add your AI key
+`api/config/ai.php` is gitignored so keys never reach the repo. Copy the
+template and paste your own key:
+```
+copy api\config\ai.example.php api\config\ai.php
+```
+Get a free Gemini key at <https://aistudio.google.com/apikey>. Without a key
+the scan still works — you just fill the items in by hand in the confirm
+dialog instead of having them read for you.
+
+### 5. Configure database credentials
 Edit `api/config/database.php`:
 ```php
 private string $host     = 'localhost';
@@ -61,13 +81,13 @@ private string $username = 'root';
 private string $password = '';   // your MySQL password
 ```
 
-### 5. Create the uploads folder
+### 6. Create the uploads folder
 ```
 C:\xampp\htdocs\qattah\uploads\receipts\
 ```
 Or it will be created automatically on first upload.
 
-### 6. Open the app
+### 7. Open the app
 ```
 http://localhost/qattah/login.html
 ```

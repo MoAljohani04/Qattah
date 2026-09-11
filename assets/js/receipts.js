@@ -1,31 +1,40 @@
 /**
  * QATTAH — Receipt scan → confirm → QR share flow
  * In-app screens for the receipt owner:
- *   #add-receipt  →  capture/upload  →  item-confirm popup  →  share (QR + link)
+ *   #add-receipt[?group_id=N]  →  capture/upload  →  item-confirm popup  →  share (QR + link)
+ *
+ * Scanning is the only way to create a split in QATTAH — the confirm popup
+ * is where the owner fixes whatever the AI misread before sharing the link.
  */
 
 const ReceiptFlow = {
-  draft    : null,   // {restaurant_name, receipt_date, receipt_image, items:[{name,unit_price,quantity}]}
+  draft    : null,   // {restaurant_name, receipt_date, receipt_image, items:[{name,unit_price,quantity,is_shared}]}
   imageFile: null,
+  groupId  : null,   // set when the scan was started from a group
+  groups   : [],     // the user's groups, for the picker in the popup
 };
 
 const todayISO   = () => new Date().toISOString().slice(0, 10);
 const escapeHtml = s => String(s ?? '').replace(/[&<>"']/g,
   c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 
+const blankItem = () => ({ name: '', unit_price: 0, quantity: 1, is_shared: false });
+
 // ── Step 1: capture / upload ──────────────────────────────────
-Pages['add-receipt'] = function () {
-  ReceiptFlow.draft = null;
+Pages['add-receipt'] = function ({ group_id } = {}) {
+  ReceiptFlow.draft     = null;
   ReceiptFlow.imageFile = null;
+  ReceiptFlow.groupId   = group_id ? parseInt(group_id) : null;
 
   setContent(`
     <div class="page-title-bar"><div>
       <h2>Scan Receipt</h2>
-      <p>Snap or upload a receipt, confirm the items, then share a link.</p>
+      <p>Snap or upload a receipt — QATTAH reads the items, you confirm, friends pick.</p>
     </div></div>
 
     <div class="card card-p receipt-capture">
       <div class="rc-ai" id="rc-ai"></div>
+      <div class="rc-group" id="rc-group"></div>
 
       <div class="rc-dropzone" id="rc-dropzone">
         <div class="rc-placeholder" id="rc-placeholder">
@@ -43,8 +52,8 @@ Pages['add-receipt'] = function () {
         </label>
       </div>
 
-      <button class="btn btn-primary btn-block" id="rc-process">Extract Items</button>
-      <button class="btn btn-ghost btn-block" id="rc-manual">Skip — enter items manually</button>
+      <button class="btn btn-primary btn-block" id="rc-process" disabled>Scan Receipt</button>
+      <p class="rc-hint">You can fix names, prices and quantities before sharing.</p>
     </div>
   `);
 
@@ -54,6 +63,7 @@ Pages['add-receipt'] = function () {
     ReceiptFlow.imageFile = f;
     const url = URL.createObjectURL(f);
     $('rc-dropzone').innerHTML = `<img class="rc-preview" src="${url}" alt="receipt preview">`;
+    $('rc-process').disabled = false;
   };
   $('rc-camera').addEventListener('change', onPick);
   $('rc-file').addEventListener('change', onPick);
@@ -66,24 +76,31 @@ Pages['add-receipt'] = function () {
     el.className = `rc-ai ${s.ai_enabled ? 'on' : 'off'}`;
     el.innerHTML = s.ai_enabled
       ? `<span class="rc-ai-dot"></span>🤖 AI auto-read is ON — items are read from your photo`
-      : `<span class="rc-ai-dot"></span>✍️ Manual mode — add a Claude API key in <code>api/config/ai.php</code> to auto-read receipts`;
+      : `<span class="rc-ai-dot"></span>⚠️ AI auto-read is off — add an API key in <code>api/config/ai.php</code>, or fill the items in by hand after scanning`;
   }).catch(() => {});
-  $('rc-manual').addEventListener('click', () => startConfirm({
-    restaurant_name: '', receipt_date: todayISO(), receipt_image: null,
-    items: [{ name: '', unit_price: 0, quantity: 1 }],
-  }));
+
+  // Keep the user's groups handy so the confirm popup can file the receipt.
+  Api.groups.list().then(gs => {
+    ReceiptFlow.groups = gs || [];
+    const g = ReceiptFlow.groups.find(x => x.id == ReceiptFlow.groupId);
+    const el = $('rc-group');
+    if (g && el) {
+      el.innerHTML = `<span class="rc-group-chip">👥 Splitting with <strong>${escapeHtml(g.name)}</strong></span>`;
+    }
+  }).catch(() => {});
 };
 
 async function processReceipt() {
+  if (!ReceiptFlow.imageFile) { toast('Take or upload a photo first', 'error'); return; }
   const btn = $('rc-process');
   btn.classList.add('loading');
   btn.disabled = true;
   try {
     const fd = new FormData();
-    if (ReceiptFlow.imageFile) fd.append('receipt', ReceiptFlow.imageFile);
+    fd.append('receipt', ReceiptFlow.imageFile);
     const data = await Api.receipts.extract(fd);
     if (data.ai_used) toast('Items read from your receipt — please review', 'success');
-    else if (data.ai_error) toast('Auto-read failed, enter items manually', 'warning');
+    else if (data.ai_error) toast('Auto-read failed — check the items below', 'warning');
     startConfirm(data);
   } catch (e) {
     toast(e.message || 'Could not process receipt', 'error');
@@ -95,11 +112,12 @@ async function processReceipt() {
 
 // ── Step 2: item confirmation popup ───────────────────────────
 function startConfirm(data) {
-  const items = (data.items && data.items.length ? data.items : [{ name: '', unit_price: 0, quantity: 1 }])
+  const items = (data.items && data.items.length ? data.items : [blankItem()])
     .map(it => ({
       name      : it.name || '',
       unit_price: Number(it.unit_price) || 0,
       quantity  : Math.max(1, parseInt(it.quantity) || 1),
+      is_shared : !!it.is_shared,
     }));
   ReceiptFlow.draft = {
     restaurant_name: data.restaurant_name || '',
@@ -108,6 +126,19 @@ function startConfirm(data) {
     items,
   };
   openConfirmPopup();
+}
+
+function groupPickerHtml() {
+  if (!ReceiptFlow.groups.length) return '';
+  const opts = ReceiptFlow.groups.map(g =>
+    `<option value="${g.id}" ${g.id == ReceiptFlow.groupId ? 'selected' : ''}>${escapeHtml(g.name)}</option>`
+  ).join('');
+  return `
+    <label class="form-label" style="margin-top:10px">Group (optional)</label>
+    <select class="form-control" id="rcp-group">
+      <option value="">No group — share by link only</option>
+      ${opts}
+    </select>`;
 }
 
 function openConfirmPopup() {
@@ -124,11 +155,14 @@ function openConfirmPopup() {
         <h3>Confirm Items</h3>
         <button class="icon-btn" id="rcp-close" style="width:32px;height:32px">✕</button>
       </div>
+      <p class="rcp-note">Edit anything the scan got wrong. Tick <strong>Shareable</strong> on
+        items the table splits — everyone who picks them pays an equal part.</p>
       <div class="rcp-meta">
         <label class="form-label">Restaurant</label>
         <input class="form-control" id="rcp-rest" placeholder="e.g. Al Baik" value="${escapeHtml(ReceiptFlow.draft.restaurant_name)}">
         <label class="form-label" style="margin-top:10px">Date</label>
         <input class="form-control" id="rcp-date" type="date" value="${escapeHtml(ReceiptFlow.draft.receipt_date)}">
+        ${groupPickerHtml()}
       </div>
       <div class="rcp-items" id="rcp-items"></div>
       <button class="btn btn-ghost btn-block" id="rcp-add">+ Add item</button>
@@ -145,8 +179,11 @@ function openConfirmPopup() {
 
   $('rcp-rest').addEventListener('input', e => ReceiptFlow.draft.restaurant_name = e.target.value);
   $('rcp-date').addEventListener('input', e => ReceiptFlow.draft.receipt_date = e.target.value);
+  $('rcp-group')?.addEventListener('change', e => {
+    ReceiptFlow.groupId = e.target.value ? parseInt(e.target.value) : null;
+  });
   $('rcp-add').addEventListener('click', () => {
-    ReceiptFlow.draft.items.push({ name: '', unit_price: 0, quantity: 1 });
+    ReceiptFlow.draft.items.push(blankItem());
     renderConfirmRows();
   });
   $('rcp-close').addEventListener('click', closeConfirmPopup);
@@ -163,20 +200,26 @@ function closeConfirmPopup() {
 function renderConfirmRows() {
   const wrap = $('rcp-items');
   wrap.innerHTML = ReceiptFlow.draft.items.map((it, i) => `
-    <div class="rcp-row" data-idx="${i}">
-      <div class="rcp-row-main">
-        <input class="form-control rcp-name"  data-idx="${i}" placeholder="Item name" value="${escapeHtml(it.name)}">
-        <div class="rcp-price">
-          <input class="form-control rcp-pricein" data-idx="${i}" type="number" min="0" step="0.01"
-                 inputmode="decimal" placeholder="0.00" value="${it.unit_price || ''}">
-          <span class="rcp-cur">SAR</span>
+    <div class="rcp-row${it.is_shared ? ' is-shared' : ''}" data-idx="${i}">
+      <div class="rcp-row-top">
+        <div class="rcp-row-main">
+          <input class="form-control rcp-name" data-idx="${i}" placeholder="Item name" value="${escapeHtml(it.name)}">
+          <div class="rcp-price">
+            <input class="form-control rcp-pricein" data-idx="${i}" type="number" min="0" step="0.01"
+                   inputmode="decimal" placeholder="0.00" value="${it.unit_price || ''}">
+            <span class="rcp-cur">SAR</span>
+          </div>
+        </div>
+        <div class="qstep">
+          <button class="qstep-btn" data-act="dec" data-idx="${i}">−</button>
+          <span class="qstep-val" id="qv-${i}">${it.quantity}</span>
+          <button class="qstep-btn" data-act="inc" data-idx="${i}">+</button>
         </div>
       </div>
-      <div class="qstep">
-        <button class="qstep-btn" data-act="dec" data-idx="${i}">−</button>
-        <span class="qstep-val" id="qv-${i}">${it.quantity}</span>
-        <button class="qstep-btn" data-act="inc" data-idx="${i}">+</button>
-      </div>
+      <label class="rcp-share">
+        <input type="checkbox" class="rcp-sharecb" data-idx="${i}" ${it.is_shared ? 'checked' : ''}>
+        <span>Shareable — split between everyone who picks it</span>
+      </label>
     </div>`).join('');
 
   wrap.querySelectorAll('.rcp-name').forEach(el =>
@@ -188,6 +231,11 @@ function renderConfirmRows() {
       ReceiptFlow.draft.items[+e.target.dataset.idx].unit_price = parseFloat(e.target.value) || 0;
       updateGrandTotal();
     }));
+  wrap.querySelectorAll('.rcp-sharecb').forEach(el =>
+    el.addEventListener('change', e => {
+      ReceiptFlow.draft.items[+e.target.dataset.idx].is_shared = e.target.checked;
+      e.target.closest('.rcp-row').classList.toggle('is-shared', e.target.checked);
+    }));
   wrap.querySelectorAll('.qstep-btn').forEach(el =>
     el.addEventListener('click', e => {
       const i   = +e.currentTarget.dataset.idx;
@@ -198,7 +246,7 @@ function renderConfirmRows() {
       if (it.quantity <= 0) {
         ReceiptFlow.draft.items.splice(i, 1);
         if (ReceiptFlow.draft.items.length === 0)
-          ReceiptFlow.draft.items.push({ name: '', unit_price: 0, quantity: 1 });
+          ReceiptFlow.draft.items.push(blankItem());
         renderConfirmRows();
       } else {
         $(`qv-${i}`).textContent = it.quantity;
@@ -229,6 +277,7 @@ async function confirmReceipt() {
       restaurant_name: ReceiptFlow.draft.restaurant_name,
       receipt_date   : ReceiptFlow.draft.receipt_date,
       receipt_image  : ReceiptFlow.draft.receipt_image,
+      group_id       : ReceiptFlow.groupId || null,
       items,
     });
     closeConfirmPopup();
@@ -247,11 +296,15 @@ function shareUrlFor(token) {
 }
 
 function showShareScreen(res) {
-  const url = shareUrlFor(res.share_token);
+  const url      = shareUrlFor(res.share_token);
+  const groupId  = res.group_id;
+  const doneHash = groupId ? `#group-detail?id=${groupId}` : '#dashboard';
   setContent(`
     <div class="page-title-bar"><div>
       <h2>Receipt Ready 🎉</h2>
-      <p>Share this link or QR code so friends can pick their items.</p>
+      <p>${groupId
+        ? 'Your group has been notified — they can also scan this code.'
+        : 'Share this link or QR code so friends can pick their items.'}</p>
     </div></div>
 
     <div class="card card-p share-card">
@@ -267,11 +320,12 @@ function showShareScreen(res) {
         <button class="btn btn-secondary" id="dl-qr">⬇️ Download QR</button>
       </div>
       <a class="btn btn-primary btn-block" href="${url}" target="_blank" rel="noopener">Open Receipt Page</a>
-      <button class="btn btn-ghost btn-block" onclick="window.location.hash='#dashboard'">Done</button>
+      <button class="btn btn-ghost btn-block" id="rc-done">Done</button>
     </div>
   `);
 
   renderQR(url);
+  $('rc-done').addEventListener('click', () => { window.location.hash = doneHash; });
   $('copy-link').addEventListener('click', () => {
     navigator.clipboard?.writeText(url)
       .then(() => toast('Link copied', 'success'))

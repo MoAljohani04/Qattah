@@ -56,7 +56,8 @@ Pages['group-detail'] = async function({ id } = {}) {
   showLoading();
   try {
     const g = await Api.groups.get(id);
-    const isAdmin = g.my_role === 'admin';
+    const isAdmin  = g.my_role === 'admin';
+    const receipts = g.receipts || [];
 
     setContent(`
       <div class="page-content fade-in">
@@ -73,6 +74,18 @@ Pages['group-detail'] = async function({ id } = {}) {
         </div>
 
         ${g.description ? `<p style="padding:0 16px 12px;color:var(--text-muted);font-size:.875rem">${g.description}</p>` : ''}
+
+        <!-- Scan a receipt straight into this group -->
+        <div class="px-4" style="margin-bottom:4px">
+          <button class="btn btn-primary btn-block group-scan-btn"
+            onclick="window.location.hash='#add-receipt?group_id=${g.id}'">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+            Scan a receipt for ${escHtml(g.name)}
+          </button>
+        </div>
 
         <!-- Members -->
         <div class="section-header">
@@ -93,10 +106,18 @@ Pages['group-detail'] = async function({ id } = {}) {
             </div>`).join('')}
         </div>
 
+        <!-- Scanned receipts -->
+        <div class="section-header">
+          <span class="section-title">Scanned Receipts (${receipts.length})</span>
+          <button class="section-link" onclick="window.location.hash='#add-receipt?group_id=${g.id}'">📷 Scan</button>
+        </div>
+        ${receipts.length === 0
+          ? `<div class="empty-state" style="padding:24px"><div class="empty-emoji">📷</div><p>No receipts scanned for this group yet</p></div>`
+          : `<div class="receipt-list px-4 stagger">${receipts.map(renderGroupReceipt).join('')}</div>`}
+
         <!-- Bills -->
         <div class="section-header">
           <span class="section-title">Bills (${g.bills.length})</span>
-          <button class="section-link" onclick="window.location.hash='#add-bill'">+ Add Bill</button>
         </div>
         ${g.bills.length === 0
           ? `<div class="empty-state" style="padding:24px"><div class="empty-emoji">🧾</div><p>No bills yet</p></div>`
@@ -110,6 +131,33 @@ Pages['group-detail'] = async function({ id } = {}) {
     setContent(`<div class="empty-state"><div class="empty-emoji">⚠️</div><h3>Error</h3><p>${e.message}</p></div>`);
   }
 };
+
+// Receipt card inside a group — tapping it opens the public claim page.
+function renderGroupReceipt(r) {
+  const paid  = parseInt(r.paid_count) || 0;
+  const folks = parseInt(r.participant_count) || 0;
+  const state = r.status === 'closed' ? 'closed'
+              : paid > 0 && paid >= folks && folks > 0 ? 'settled' : 'open';
+  const label = { open:'Open', settled:'All paid', closed:'Closed' }[state];
+  return `
+    <a class="receipt-row card-interactive" href="receipt.html?t=${encodeURIComponent(r.share_token)}">
+      <span class="receipt-row-ic">🧾</span>
+      <div class="receipt-row-main">
+        <div class="receipt-row-name">${escHtml(r.restaurant_name)}</div>
+        <div class="receipt-row-meta">
+          ${fmtDate(r.receipt_date)} · by ${escHtml(r.creator_name)} ·
+          ${folks} picked · ${paid} paid
+        </div>
+      </div>
+      <div class="receipt-row-right">
+        <span class="receipt-row-amt">${fmtCurrency(r.total_amount, r.currency)}</span>
+        <span class="receipt-chip ${state}">${label}</span>
+      </div>
+    </a>`;
+}
+
+const escHtml = s => String(s ?? '').replace(/[&<>"']/g,
+  c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 
 // ── Create group modal ────────────────────────────────────────
 window.showCreateGroup = () => {

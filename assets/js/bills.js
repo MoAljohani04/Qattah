@@ -1,5 +1,7 @@
 /**
- * QATTAH — Bills Page (list, add, detail, edit)
+ * QATTAH — Bills Page (list, detail, edit)
+ *
+ * Creating a bill by hand was removed — splits start at #add-receipt (AI scan).
  */
 
 // ── Bills list ────────────────────────────────────────────────
@@ -13,8 +15,8 @@ Pages.bills = async function({ q = '' } = {}) {
       <div class="page-content fade-in">
         <div class="page-title-bar">
           <div><h2>${t('bills')}</h2><p>${data.total} total</p></div>
-          <button class="btn btn-primary" style="padding:8px 14px;font-size:.85rem" onclick="window.location.hash='#add-bill'">
-            + Add
+          <button class="btn btn-primary" style="padding:8px 14px;font-size:.85rem" onclick="window.location.hash='#add-receipt'">
+            📷 Scan
           </button>
         </div>
 
@@ -24,7 +26,7 @@ Pages.bills = async function({ q = '' } = {}) {
         </div>
 
         ${bills.length === 0
-          ? `<div class="empty-state"><div class="empty-emoji">🧾</div><h3>${t('no_bills')}</h3><p>Tap + Add to create your first bill</p></div>`
+          ? `<div class="empty-state"><div class="empty-emoji">🧾</div><h3>${t('no_bills')}</h3><p>Scan a receipt to create your first split</p></div>`
           : `<div class="bills-list stagger" id="bills-list">${bills.map(renderBillItem).join('')}</div>`}
       </div>
     `);
@@ -111,13 +113,14 @@ Pages['bill-detail'] = async function({ id } = {}) {
   }
 };
 
-// ── Add / Edit Bill ───────────────────────────────────────────
-Pages['add-bill'] = async function({ id } = {}) {
-  const isEdit = !!id;
+// ── Edit Bill ─────────────────────────────────────────────────
+// Bills are no longer created by hand — every split starts from a receipt
+// scan (#add-receipt). This screen only edits a bill that already exists,
+// so a payer can fix a title, amount or who was in on it.
+Pages['edit-bill'] = async function({ id } = {}) {
+  if (!id) { window.location.hash = '#add-receipt'; return; }
   let existing = null;
-  if (isEdit) {
-    try { existing = await Api.bills.get(id); } catch(e) { toast(e.message,'error'); return; }
-  }
+  try { existing = await Api.bills.get(id); } catch(e) { toast(e.message,'error'); return; }
 
   let selectedParticipants = existing?.participants?.map(p => ({
     user_id: p.user_id, name: p.name, amount_owed: p.amount_owed
@@ -131,7 +134,7 @@ Pages['add-bill'] = async function({ id } = {}) {
         <button class="icon-btn" onclick="history.back()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
         </button>
-        <h2 style="font-size:1.25rem;font-weight:800">${isEdit ? 'Edit Bill' : 'New Bill'}</h2>
+        <h2 style="font-size:1.25rem;font-weight:800">Edit Bill</h2>
       </div>
 
       <form id="bill-form" style="padding:0 16px 16px">
@@ -187,7 +190,7 @@ Pages['add-bill'] = async function({ id } = {}) {
         <div id="split-total-warn" class="form-error hidden"></div>
 
         <button type="submit" class="btn btn-primary btn-block" style="margin-top:8px">
-          <span class="btn-text">${isEdit ? 'Save Changes' : 'Add Bill'}</span>
+          <span class="btn-text">Save Changes</span>
         </button>
       </form>
     </div>
@@ -318,14 +321,9 @@ Pages['add-bill'] = async function({ id } = {}) {
         participants: finalParticipants,
         receipt_image: receiptPath || null,
       };
-      if (isEdit) {
-        await Api.bills.update(id, payload);
-        toast('Bill updated!', 'success');
-      } else {
-        await Api.bills.create(payload);
-        toast('Bill added!', 'success');
-      }
-      window.location.hash = '#bills';
+      await Api.bills.update(id, payload);
+      toast('Bill updated!', 'success');
+      window.location.hash = `#bill-detail?id=${id}`;
     } catch(err) {
       toast(err.message, 'error');
     } finally {
@@ -363,5 +361,5 @@ window.deleteBill = async (billId) => {
 };
 
 window.editBill = (id) => {
-  window.location.hash = `#add-bill?id=${id}`;
+  window.location.hash = `#edit-bill?id=${id}`;
 };

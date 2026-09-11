@@ -66,7 +66,7 @@ function receiptSummaryCard(r) {
   return `
     <div class="r-summary">
       <div class="r-rest">${esc(r.restaurant_name)}</div>
-      <div class="r-sub">Shared by ${esc(r.creator_name)} · ${esc(r.receipt_date)}</div>
+      <div class="r-sub">Shared by ${esc(r.creator_name)}${r.group_name ? ` in ${esc(r.group_name)}` : ''} · ${esc(r.receipt_date)}</div>
       <div class="r-grand">${money(r.total_amount, r.currency)}</div>
     </div>`;
 }
@@ -139,21 +139,49 @@ function renderOrder() {
   });
 }
 
+// What a line costs this user right now. Shared lines split the whole line
+// between everyone who's in — mirrors receiptTotalFor() on the server.
+function myShare(it) {
+  if (!it.is_shared) return it.unit_price * it.my_quantity;
+  if (it.my_quantity <= 0) return 0;
+  const line    = it.unit_price * it.quantity;
+  // The server hasn't seen an un-saved tick yet, so count ourselves in.
+  const sharers = Math.max(1, it.sharer_count || 1);
+  return line / sharers;
+}
+
+// The "SAR x each · y left" / "Shared · split n ways" line under an item name.
+function itemMetaText(it) {
+  const cur = R.data.receipt.currency;
+  if (it.is_shared) {
+    const n = Math.max(1, it.sharer_count || (it.my_quantity > 0 ? 1 : 0) || 1);
+    const line = money(it.unit_price * it.quantity, cur);
+    return it.my_quantity > 0
+      ? `${line} shared · split ${n} way${n === 1 ? '' : 's'} · you pay ${money(myShare(it), cur)}`
+      : `${line} shared · tick to split it`;
+  }
+  return `${money(it.unit_price, cur)} each · ${it.remaining} left`;
+}
+
 function renderItemRows() {
-  const r = R.data.receipt;
   $id('r-items').innerHTML = R.data.items.map(it => {
-    const max = it.remaining;                 // most this user can take
+    const picker = it.is_shared
+      ? `<label class="r-sharepick">
+           <input type="checkbox" class="r-sharecb" data-id="${it.id}" ${it.my_quantity > 0 ? 'checked' : ''}>
+           <span>I shared this</span>
+         </label>`
+      : `<div class="qstep">
+           <button class="qstep-btn" data-act="dec" data-id="${it.id}">−</button>
+           <span class="qstep-val" id="rq-${it.id}">${it.my_quantity}</span>
+           <button class="qstep-btn" data-act="inc" data-id="${it.id}">+</button>
+         </div>`;
     return `
-    <div class="r-item" data-id="${it.id}">
+    <div class="r-item${it.is_shared ? ' is-shared' : ''}" data-id="${it.id}">
       <div class="r-item-info">
-        <div class="r-item-name">${esc(it.name)}</div>
-        <div class="r-item-meta">${money(it.unit_price, r.currency)} each · ${max} left</div>
+        <div class="r-item-name">${esc(it.name)}${it.is_shared ? '<span class="r-shared-tag">Shared</span>' : ''}</div>
+        <div class="r-item-meta">${itemMetaText(it)}</div>
       </div>
-      <div class="qstep">
-        <button class="qstep-btn" data-act="dec" data-id="${it.id}">−</button>
-        <span class="qstep-val" id="rq-${it.id}">${it.my_quantity}</span>
-        <button class="qstep-btn" data-act="inc" data-id="${it.id}">+</button>
-      </div>
+      ${picker}
     </div>`;
   }).join('');
 
@@ -170,14 +198,34 @@ function renderItemRows() {
         it.my_quantity -= 1;
       }
       $id(`rq-${id}`).textContent = it.my_quantity;
+      refreshItemMeta(it);
+      renderOrderPanel();
+      syncPayButton();
+      scheduleSave();
+    }));
+
+  $id('r-items').querySelectorAll('.r-sharecb').forEach(cb =>
+    cb.addEventListener('change', e => {
+      const it = R.data.items.find(x => x.id === +e.target.dataset.id);
+      const wasIn = it.my_quantity > 0;
+      it.my_quantity = e.target.checked ? 1 : 0;
+      // Optimistic sharer count so the split updates before the server replies.
+      if (e.target.checked && !wasIn)      it.sharer_count += 1;
+      else if (!e.target.checked && wasIn) it.sharer_count = Math.max(0, it.sharer_count - 1);
+      R.data.items.filter(x => x.is_shared).forEach(refreshItemMeta);
       renderOrderPanel();
       syncPayButton();
       scheduleSave();
     }));
 }
 
+function refreshItemMeta(it) {
+  const el = document.querySelector(`.r-item[data-id="${it.id}"] .r-item-meta`);
+  if (el) el.textContent = itemMetaText(it);
+}
+
 function myTotal() {
-  return R.data.items.reduce((s, it) => s + it.unit_price * it.my_quantity, 0);
+  return R.data.items.reduce((s, it) => s + myShare(it), 0);
 }
 
 function renderOrderPanel() {
@@ -186,8 +234,10 @@ function renderOrderPanel() {
   const lines = chosen.length
     ? chosen.map(it => `
         <div class="r-order-line">
-          <span>${esc(it.name)} ×${it.my_quantity}</span>
-          <span>${money(it.unit_price * it.my_quantity, r.currency)}</span>
+          <span>${esc(it.name)} ${it.is_shared
+            ? `<em class="r-order-split">split ${Math.max(1, it.sharer_count || 1)} ways</em>`
+            : `×${it.my_quantity}`}</span>
+          <span>${money(myShare(it), r.currency)}</span>
         </div>`).join('')
     : `<div class="r-order-empty">No items selected yet</div>`;
   $id('r-order').innerHTML = `
@@ -218,11 +268,12 @@ async function saveClaims() {
       it.claimed_total = si.claimed_total;
       it.remaining     = si.remaining;
       it.my_quantity   = si.my_quantity;
+      it.sharer_count  = si.sharer_count;
       const valEl = $id(`rq-${it.id}`);
       if (valEl) valEl.textContent = it.my_quantity;
-      // refresh the "X left" label
-      const row = document.querySelector(`.r-item[data-id="${it.id}"] .r-item-meta`);
-      if (row) row.textContent = `${money(it.unit_price, R.data.receipt.currency)} each · ${it.remaining} left`;
+      const cb = document.querySelector(`.r-sharecb[data-id="${it.id}"]`);
+      if (cb) cb.checked = it.my_quantity > 0;
+      refreshItemMeta(it);
     });
     renderOrderPanel();
     syncPayButton();
@@ -244,8 +295,10 @@ function renderPayment() {
       <div class="r-sub" style="margin-bottom:12px">Your items</div>
       ${chosen.map(it => `
         <div class="r-order-line">
-          <span>${esc(it.name)} ×${it.my_quantity}</span>
-          <span>${money(it.unit_price * it.my_quantity, r.currency)}</span>
+          <span>${esc(it.name)} ${it.is_shared
+            ? `<em class="r-order-split">split ${Math.max(1, it.sharer_count || 1)} ways</em>`
+            : `×${it.my_quantity}`}</span>
+          <span>${money(myShare(it), r.currency)}</span>
         </div>`).join('')}
       <div class="r-order-total"><span>Total due</span><strong>${money(myTotal(), r.currency)}</strong></div>
     </div>

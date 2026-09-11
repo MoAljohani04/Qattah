@@ -6,91 +6,109 @@
   <meta name="theme-color" content="#10B981">
   <title>Login — QATTAH</title>
   <link rel="stylesheet" href="assets/css/style.css">
-  <style>
-    body { display:flex; justify-content:center; }
-    .auth-page { width:100%; max-width:480px; }
-  </style>
 </head>
 <body>
   <div class="auth-page" id="auth-page">
 
-    <!-- Top brand section -->
-    <div class="auth-top">
-      <div class="auth-logo-wrap">
-        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-          <path d="M2 17l10 5 10-5"/>
-          <path d="M2 12l10 5 10-5"/>
-        </svg>
+    <!-- ── Brand panel: a header on phones, a full column on desktop ── -->
+    <aside class="auth-top">
+      <div class="auth-brand">
+        <div class="auth-logo-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div class="auth-app-name">QATTAH</div>
+        <div class="auth-app-tag">Split bills with friends, effortlessly</div>
       </div>
-      <div class="auth-app-name">QATTAH</div>
-      <div class="auth-app-tag">Split bills with friends, effortlessly</div>
-    </div>
 
-    <!-- Form -->
-    <div class="auth-form-wrap">
-      <h2 class="auth-form-title">Welcome back 👋</h2>
-      <p class="auth-form-sub">Sign in to your account to continue</p>
+      <!-- Desktop-only: fills the empty half with something useful -->
+      <ul class="auth-points">
+        <li>
+          <span class="auth-point-ic">📷</span>
+          <span><strong>Scan the receipt</strong>Our AI reads every line item — no typing.</span>
+        </li>
+        <li>
+          <span class="auth-point-ic">🔗</span>
+          <span><strong>Share a link or QR</strong>Everyone picks what they actually ordered.</span>
+        </li>
+        <li>
+          <span class="auth-point-ic">🧮</span>
+          <span><strong>Nobody does the maths</strong>Shared plates split evenly, automatically.</span>
+        </li>
+      </ul>
 
-      <form id="login-form" novalidate>
-        <div class="form-group">
-          <label class="form-label" for="email">Email</label>
-          <div class="input-wrap">
-            <div class="input-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                <polyline points="22,6 12,13 2,6"/>
-              </svg>
+      <p class="auth-foot-note">© QATTAH — Saudi Riyal ready, Arabic &amp; English.</p>
+    </aside>
+
+    <!-- ── Form column ─────────────────────────────────────────── -->
+    <main class="auth-form-wrap">
+      <div class="auth-form-inner">
+        <h2 class="auth-form-title">Welcome back 👋</h2>
+        <p class="auth-form-sub">Sign in to your account to continue</p>
+
+        <form id="login-form" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="email">Email</label>
+            <div class="input-wrap">
+              <div class="input-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+              </div>
+              <input class="form-control" id="email" type="email" name="email"
+                autocomplete="email" placeholder="you@example.com" required>
             </div>
-            <input class="form-control" id="email" type="email" name="email"
-              autocomplete="email" placeholder="you@example.com" required>
+            <div class="form-error hidden" id="email-error"></div>
           </div>
-          <div class="form-error hidden" id="email-error"></div>
-        </div>
 
-        <div class="form-group">
-          <label class="form-label" for="password">Password</label>
-          <div class="input-wrap">
-            <div class="input-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="11" width="18" height="11" rx="2"/>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-              </svg>
+          <div class="form-group">
+            <label class="form-label" for="password">Password</label>
+            <div class="input-wrap">
+              <div class="input-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              </div>
+              <input class="form-control" id="password" type="password" name="password"
+                autocomplete="current-password" placeholder="••••••••" required>
+              <button type="button" class="input-eye" id="toggle-pw" aria-label="Show password">
+                <svg id="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
             </div>
-            <input class="form-control" id="password" type="password" name="password"
-              autocomplete="current-password" placeholder="••••••••" required>
-            <button type="button" class="input-eye" id="toggle-pw">
-              <svg id="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
-            </button>
+            <div class="form-error hidden" id="pw-error"></div>
           </div>
-          <div class="form-error hidden" id="pw-error"></div>
-        </div>
 
-        <div class="form-error hidden" id="form-error" style="margin-bottom:12px"></div>
+          <div class="form-error hidden" id="form-error" style="margin-bottom:12px"></div>
 
-        <button type="submit" class="btn btn-primary btn-block" id="submit-btn">
-          <span class="btn-text">Sign In</span>
+          <button type="submit" class="btn btn-primary btn-block" id="submit-btn">
+            <span class="btn-text">Sign In</span>
+          </button>
+        </form>
+
+        <div class="auth-divider">or</div>
+
+        <!-- Demo credentials hint — one tap to fill -->
+        <button type="button" class="auth-demo" id="demo-fill">
+          <span class="auth-demo-ic">🔑</span>
+          <span class="auth-demo-txt">
+            <strong>Use a demo account</strong>
+            ahmed@qattah.com · password123
+          </span>
         </button>
-      </form>
 
-      <div class="auth-divider">or</div>
-
-      <!-- Demo credentials hint -->
-      <div style="background:var(--bg-input);border-radius:var(--radius);padding:14px;margin-bottom:16px">
-        <div style="font-size:.8rem;font-weight:700;color:var(--text-muted);margin-bottom:6px">Demo Accounts</div>
-        <div style="font-size:.8125rem;color:var(--text-muted)">
-          <div>📧 ahmed@qattah.com</div>
-          <div>🔒 password123</div>
-        </div>
+        <p class="auth-switch">
+          Don't have an account? <a href="register.html">Create one</a>
+        </p>
       </div>
-
-      <p class="auth-switch">
-        Don't have an account? <a href="register.html">Create one</a>
-      </p>
-    </div>
+    </main>
 
   </div>
 
@@ -112,6 +130,13 @@
         pw.type = 'password';
         icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
       }
+    });
+
+    // Demo account — fill the form so it can be reviewed in one tap
+    document.getElementById('demo-fill').addEventListener('click', function() {
+      document.getElementById('email').value    = 'ahmed@qattah.com';
+      document.getElementById('password').value = 'password123';
+      document.getElementById('email').focus();
     });
 
     // Returns a safe same-origin redirect target from ?redirect=, or null.

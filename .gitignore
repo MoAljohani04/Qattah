@@ -1,2 +1,9 @@
 /.claude
-/api
+
+# AI provider keys stay local — copy api/config/ai.example.php to
+# api/config/ai.php and paste your own key there.
+/api/config/ai.php
+
+# Uploaded receipt photos are user data, not source.
+/uploads/receipts/*
+!/uploads/receipts/.gitkeep

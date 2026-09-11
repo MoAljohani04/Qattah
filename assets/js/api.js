@@ -89,7 +89,7 @@ const Api = {
     receipt: fd => Api.request('POST', 'upload/receipt.php', fd, true),
   },
   receipts: {
-    list   : ()      => Api.get ('receipts/index.php'),
+    list   : (p = {}) => Api.get ('receipts/index.php', p),
     create : d       => Api.post('receipts/index.php', d),
     extract: fd      => Api.request('POST', 'receipts/extract.php', fd, true),
     get    : token   => Api.get ('receipts/show.php', { token }),

@@ -156,6 +156,12 @@ function currentPage() {
   return window.location.hash.slice(1).split('?')[0] || 'dashboard';
 }
 
+/** Query params in the current hash — so a deep link survives a reload. */
+function currentParams() {
+  return Object.fromEntries(
+    new URLSearchParams(window.location.hash.slice(1).split('?')[1] || ''));
+}
+
 window.addEventListener('hashchange', () => {
   const hash   = window.location.hash.slice(1);
   const [page] = hash.split('?');
@@ -249,7 +255,7 @@ async function initApp() {
   setTimeout(() => {
     if (splash) splash.classList.add('hide');
     $('app').classList.remove('hidden');
-    navigate(currentPage());
+    navigate(currentPage(), currentParams());
     refreshNotifBadge();
     setInterval(refreshNotifBadge, 30000);
   }, 1200);
@@ -293,19 +299,9 @@ async function initApp() {
     if (e.target === $('modal-overlay')) Modal.close();
   });
 
-  // FAB → choose what to add
+  // FAB → scan a receipt (the only way to start a split)
   $('fab-btn')?.addEventListener('click', () => {
-    Modal.open('Add New', `
-      <div class="fab-choices">
-        <button class="fab-choice" onclick="Modal.close();window.location.hash='#add-bill'">
-          <span class="fab-choice-ic">🧾</span>
-          <span class="fab-choice-txt">Add Bill<small>Split manually with friends</small></span>
-        </button>
-        <button class="fab-choice" onclick="Modal.close();window.location.hash='#add-receipt'">
-          <span class="fab-choice-ic">📷</span>
-          <span class="fab-choice-txt">Scan Receipt<small>Photo → items → QR share</small></span>
-        </button>
-      </div>`, []);
+    window.location.hash = '#add-receipt';
   });
 
   // Bottom nav

@@ -6,26 +6,43 @@
   <meta name="theme-color" content="#10B981">
   <title>Register — QATTAH</title>
   <link rel="stylesheet" href="assets/css/style.css">
-  <style>
-    body { display:flex; justify-content:center; }
-    .auth-page { width:100%; max-width:480px; }
-  </style>
 </head>
 <body>
   <div class="auth-page">
-    <div class="auth-top">
-      <div class="auth-logo-wrap">
-        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-          <path d="M2 17l10 5 10-5"/>
-          <path d="M2 12l10 5 10-5"/>
-        </svg>
+    <!-- ── Brand panel: a header on phones, a full column on desktop ── -->
+    <aside class="auth-top">
+      <div class="auth-brand">
+        <div class="auth-logo-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div class="auth-app-name">QATTAH</div>
+        <div class="auth-app-tag">Start splitting bills with friends</div>
       </div>
-      <div class="auth-app-name">QATTAH</div>
-      <div class="auth-app-tag">Start splitting bills with friends</div>
-    </div>
 
-    <div class="auth-form-wrap">
+      <ul class="auth-points">
+        <li>
+          <span class="auth-point-ic">📷</span>
+          <span><strong>Scan the receipt</strong>Our AI reads every line item — no typing.</span>
+        </li>
+        <li>
+          <span class="auth-point-ic">🔗</span>
+          <span><strong>Share a link or QR</strong>Everyone picks what they actually ordered.</span>
+        </li>
+        <li>
+          <span class="auth-point-ic">🧮</span>
+          <span><strong>Nobody does the maths</strong>Shared plates split evenly, automatically.</span>
+        </li>
+      </ul>
+
+      <p class="auth-foot-note">© QATTAH — Saudi Riyal ready, Arabic &amp; English.</p>
+    </aside>
+
+    <main class="auth-form-wrap">
+      <div class="auth-form-inner">
       <h2 class="auth-form-title">Create account ✨</h2>
       <p class="auth-form-sub">Join QATTAH and say goodbye to awkward money conversations</p>
 
@@ -132,7 +149,8 @@
       </form>
 
       <p class="auth-switch">Already have an account? <a href="login.html">Sign in</a></p>
-    </div>
+      </div>
+    </main>
   </div>
 
   <div id="toast-area" class="toast-area"></div>

@@ -1042,3 +1042,168 @@ textarea.form-control{resize:vertical;min-height:80px}
 .admin-chart-title{font-size:.9rem;font-weight:800;margin-bottom:12px}
 #admin-body .card{margin:0 16px 14px}
 #admin-body .card.admin-collected{margin:14px 16px 0}
+
+/* ════════════════════════════════════════════════════════════════
+   v2 — Desktop auth, shareable items, group receipts
+═════════════════════════════════════════════════════════════════ */
+
+/* ── Auth: phone layout tweaks ───────────────────────────────── */
+.auth-form-inner{width:100%}
+.auth-points,.auth-foot-note{display:none}   /* desktop-only furniture */
+
+.auth-demo{
+  display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+  padding:13px 14px;margin-bottom:16px;cursor:pointer;
+  background:var(--bg-input);border:1.5px solid var(--border);
+  border-radius:var(--radius);color:var(--text);
+  transition:border-color var(--ease),background var(--ease);
+}
+.auth-demo:hover{border-color:var(--primary);background:var(--primary-light)}
+.auth-demo-ic{font-size:1.25rem;flex-shrink:0}
+.auth-demo-txt{display:flex;flex-direction:column;gap:2px;font-size:.8125rem;color:var(--text-muted)}
+.auth-demo-txt strong{font-size:.8125rem;font-weight:700;color:var(--text)}
+
+/* Phone/tablet: keep the app's centred phone column */
+@media(max-width:899px){
+  .auth-page{width:100%;max-width:480px;margin:0 auto}
+}
+
+/* ── Auth: desktop split layout (≥900px) ─────────────────────────
+   Left column is the brand story, right column is the form. Both are
+   full height so neither half looks like a stranded phone screen. */
+@media(min-width:900px){
+  .auth-page{
+    flex-direction:row;align-items:stretch;
+    width:100%;max-width:none;min-height:100vh;box-shadow:none;
+  }
+
+  /* Brand column */
+  .auth-top{
+    flex:1 1 50%;max-width:620px;
+    padding:56px 56px 72px;
+    justify-content:center;align-items:flex-start;text-align:left;
+    position:relative;overflow:hidden;
+  }
+  /* soft glow so the flat gradient doesn't read as a dead block */
+  .auth-top::after{
+    content:'';position:absolute;inset:auto -120px -160px auto;
+    width:420px;height:420px;border-radius:50%;
+    background:radial-gradient(circle,rgba(16,185,129,.35),transparent 70%);
+    pointer-events:none;
+  }
+  .auth-brand{position:relative;z-index:1}
+  .auth-logo-wrap{margin-bottom:20px}
+  .auth-app-name{font-size:2.25rem}
+  .auth-app-tag{font-size:1rem;margin-top:8px;max-width:22ch}
+
+  .auth-points{
+    display:flex;flex-direction:column;gap:22px;
+    list-style:none;margin:40px 0;position:relative;z-index:1;max-width:42ch;
+  }
+  .auth-points li{display:flex;align-items:flex-start;gap:14px}
+  .auth-point-ic{
+    font-size:1.15rem;flex-shrink:0;
+    width:40px;height:40px;border-radius:12px;
+    background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .auth-points span:last-child{
+    display:flex;flex-direction:column;gap:3px;
+    font-size:.875rem;line-height:1.5;color:rgba(255,255,255,.7);
+  }
+  .auth-points strong{font-size:.9375rem;font-weight:700;color:#fff}
+
+  /* Pinned so it never pushes the story off-centre on short viewports */
+  .auth-foot-note{
+    display:block;position:absolute;z-index:1;bottom:36px;left:56px;right:56px;
+    font-size:.78rem;color:rgba(255,255,255,.45);
+  }
+
+  /* Form column */
+  .auth-form-wrap{
+    flex:1 1 50%;max-width:none;margin:0;
+    display:flex;align-items:center;justify-content:center;
+    padding:48px 40px;background:var(--bg);
+  }
+  .auth-form-inner{width:100%;max-width:400px}
+  .auth-form-title{font-size:1.75rem}
+  .auth-form-sub{margin-bottom:30px}
+}
+
+/* Very wide screens: stop the form drifting to the far edge */
+@media(min-width:1500px){
+  .auth-top{max-width:52%}
+}
+
+/* ── Scan screen extras ──────────────────────────────────────── */
+.rc-group:empty{display:none}
+.rc-group-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 12px;border-radius:var(--radius-full);
+  background:var(--primary-light);color:var(--primary-dark);
+  font-size:.8125rem;font-weight:600;
+}
+.rc-hint{font-size:.78rem;color:var(--text-muted);text-align:center;margin-top:4px}
+
+/* ── Confirm popup: shareable checkbox ───────────────────────── */
+.rcp-note{
+  font-size:.8125rem;line-height:1.5;color:var(--text-muted);
+  margin-bottom:14px;
+}
+/* The row used to be a single flex line; the shareable checkbox adds a
+   second line under it, so the row stacks and .rcp-row-top keeps the
+   original name/price/stepper line. */
+.rcp-row{flex-direction:column;align-items:stretch}
+.rcp-row-top{display:flex;align-items:center;gap:12px}
+.rcp-row.is-shared{
+  border-color:var(--primary);
+  background:var(--primary-light);
+}
+.rcp-share{
+  display:flex;align-items:center;gap:9px;margin-top:10px;cursor:pointer;
+  font-size:.78rem;color:var(--text-muted);user-select:none;
+}
+.rcp-share input{
+  width:17px;height:17px;flex-shrink:0;accent-color:var(--primary);cursor:pointer;
+}
+.rcp-row.is-shared .rcp-share{color:var(--primary-dark);font-weight:600}
+
+/* ── Shared receipt page: shared lines ───────────────────────── */
+.r-item.is-shared{background:var(--primary-light)}
+.r-shared-tag{
+  display:inline-block;margin-left:8px;padding:2px 7px;border-radius:var(--radius-full);
+  background:var(--primary);color:#fff;font-size:.65rem;font-weight:800;
+  letter-spacing:.4px;text-transform:uppercase;vertical-align:middle;
+}
+.r-sharepick{
+  display:flex;align-items:center;gap:8px;flex-shrink:0;cursor:pointer;
+  font-size:.8rem;font-weight:600;color:var(--primary-dark);user-select:none;
+}
+.r-sharepick input{
+  width:20px;height:20px;accent-color:var(--primary);cursor:pointer;
+}
+.r-order-split{font-style:normal;font-size:.75rem;color:var(--text-muted)}
+
+/* ── Group: scan button + receipt rows ───────────────────────── */
+.group-scan-btn{display:flex;align-items:center;justify-content:center;gap:9px}
+.group-scan-btn svg{width:19px;height:19px;flex-shrink:0}
+
+.receipt-list{display:flex;flex-direction:column;gap:8px}
+.receipt-row{
+  display:flex;align-items:center;gap:12px;padding:13px 14px;
+  background:var(--bg-card);border:1px solid var(--border);
+  border-radius:var(--radius);text-decoration:none;color:inherit;
+}
+.receipt-row-ic{font-size:1.4rem;flex-shrink:0}
+.receipt-row-main{flex:1;min-width:0}
+.receipt-row-name{font-weight:700;font-size:.9375rem}
+.receipt-row-meta{font-size:.75rem;color:var(--text-muted);margin-top:2px}
+.receipt-row-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
+.receipt-row-amt{font-weight:800;font-size:.875rem}
+.receipt-chip{
+  padding:2px 8px;border-radius:var(--radius-full);
+  font-size:.65rem;font-weight:800;letter-spacing:.3px;text-transform:uppercase;
+}
+.receipt-chip.open   {background:var(--primary-light);color:var(--primary-dark)}
+.receipt-chip.settled{background:rgba(59,130,246,.14);color:#2563EB}
+.receipt-chip.closed {background:var(--bg-input);color:var(--text-muted)}
