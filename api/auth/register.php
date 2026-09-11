@@ -41,7 +41,7 @@ $stmt->execute([$name, $email, $hash, $phone]);
 $userId = (int)$db->lastInsertId();
 
 // ── Auto-login ───────────────────────────────────────────────
-if (session_status() === PHP_SESSION_NONE) { session_start(); }
+startSession();
 session_regenerate_id(true);
 $_SESSION['user_id']   = $userId;
 $_SESSION['user_name'] = $name;

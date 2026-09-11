@@ -2,7 +2,7 @@
 require_once '../config/response.php';
 setHeaders();
 
-if (session_status() === PHP_SESSION_NONE) { session_start(); }
+startSession();
 $_SESSION = [];
 if (ini_get('session.use_cookies')) {
     $p = session_get_cookie_params();

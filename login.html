@@ -49,6 +49,13 @@
         <h2 class="auth-form-title">Welcome back 👋</h2>
         <p class="auth-form-sub">Sign in to your account to continue</p>
 
+        <!-- Google first: it's one tap, so it shouldn't be the afterthought
+             below the form. Removed entirely if no Client ID is configured. -->
+        <div class="g-block hidden">
+          <div id="g-btn" class="g-btn"></div>
+          <div class="auth-divider">or use your email</div>
+        </div>
+
         <form id="login-form" novalidate>
           <div class="form-group">
             <label class="form-label" for="email">Email</label>
@@ -93,8 +100,6 @@
           </button>
         </form>
 
-        <div class="auth-divider">or</div>
-
         <!-- Demo credentials hint — one tap to fill -->
         <button type="button" class="auth-demo" id="demo-fill">
           <span class="auth-demo-ic">🔑</span>
@@ -114,6 +119,7 @@
 
   <div id="toast-area" class="toast-area"></div>
 
+  <script src="assets/js/google-signin.js"></script>
   <script>
     // Apply saved theme
     const theme = localStorage.getItem('theme') || 'light';
@@ -137,6 +143,13 @@
       document.getElementById('email').value    = 'ahmed@qattah.com';
       document.getElementById('password').value = 'password123';
       document.getElementById('email').focus();
+    });
+
+    // Sign in with Google — One Tap enabled here so a returning user can
+    // land straight in the app without touching the form at all.
+    window.GoogleSignIn?.mount({
+      oneTap   : true,
+      onSuccess: () => { window.location.href = safeRedirect() || 'index.html'; },
     });
 
     // Returns a safe same-origin redirect target from ?redirect=, or null.
@@ -181,6 +194,8 @@
         });
         const data = await res.json();
         if (!data.success) { showToast(data.message || 'Login failed'); return; }
+        // They chose to sign in again — let One Tap help next time.
+        try { localStorage.removeItem('qattah_signed_out'); } catch (_) {}
         window.location.href = safeRedirect() || 'index.html';
       } catch(_) {
         showToast('Network error — is the server running?');

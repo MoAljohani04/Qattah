@@ -1207,3 +1207,16 @@ textarea.form-control{resize:vertical;min-height:80px}
 .receipt-chip.open   {background:var(--primary-light);color:var(--primary-dark)}
 .receipt-chip.settled{background:rgba(59,130,246,.14);color:#2563EB}
 .receipt-chip.closed {background:var(--bg-input);color:var(--text-muted)}
+
+/* ── Sign in with Google ─────────────────────────────────────────
+   Google renders its own <iframe> button and controls its width, so we
+   only centre it and reserve height — restyling the button itself is
+   against Google's branding rules and breaks on their updates. */
+.g-block{margin-bottom:4px}
+.g-btn{display:flex;justify-content:center;min-height:44px}
+.g-btn.g-busy{opacity:.55;pointer-events:none}
+
+/* The gate on a shared receipt is a centred flex column, which would
+   shrink the block to nothing before Google measures it — stretch it so
+   the Google button matches the full-width Login/Register beneath it. */
+.r-gate .g-block{margin-bottom:2px;width:100%;align-self:stretch}

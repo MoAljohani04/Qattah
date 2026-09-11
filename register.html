@@ -46,6 +46,13 @@
       <h2 class="auth-form-title">Create account ✨</h2>
       <p class="auth-form-sub">Join QATTAH and say goodbye to awkward money conversations</p>
 
+      <!-- One tap and there is no form to fill in at all. Removed entirely
+           if no Google Client ID is configured. -->
+      <div class="g-block hidden">
+        <div id="g-btn" class="g-btn"></div>
+        <div class="auth-divider">or sign up with your email</div>
+      </div>
+
       <form id="register-form" novalidate>
 
         <div class="form-group">
@@ -155,9 +162,17 @@
 
   <div id="toast-area" class="toast-area"></div>
 
+  <script src="assets/js/google-signin.js"></script>
   <script>
     const theme = localStorage.getItem('theme') || 'light';
     document.documentElement.setAttribute('data-theme', theme);
+
+    // Signing up with Google creates the account outright — no form, no
+    // password to invent. One Tap stays off here: it's presumptuous on a
+    // page someone opened specifically to fill something in.
+    window.GoogleSignIn?.mount({
+      onSuccess: () => { window.location.href = safeRedirect() || 'index.html'; },
+    });
 
     document.getElementById('toggle-pw').addEventListener('click', function() {
       const pw   = document.getElementById('password');

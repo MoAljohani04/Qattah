@@ -20,7 +20,13 @@ $stmt = $db->prepare(
 $stmt->execute([$email]);
 $user = $stmt->fetch();
 
-if (!$user || !password_verify($password, $user['password'])) {
+// An account created through Google has no password yet. Say so plainly —
+// "invalid email or password" would send them round in circles. This leaks
+// nothing an attacker can use: the Google button is on the same page.
+if ($user && empty($user['password'])) {
+    error('This account uses Sign in with Google. Tap the Google button above.', 401);
+}
+if (!$user || !password_verify($password, (string)$user['password'])) {
     error('Invalid email or password', 401);
 }
 if ((int)$user['is_active'] === 0) {
@@ -28,7 +34,7 @@ if ((int)$user['is_active'] === 0) {
 }
 unset($user['is_active']);
 
-if (session_status() === PHP_SESSION_NONE) { session_start(); }
+startSession();
 session_regenerate_id(true);
 $_SESSION['user_id']   = $user['id'];
 $_SESSION['user_name'] = $user['name'];

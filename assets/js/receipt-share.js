@@ -99,11 +99,19 @@ function renderGate() {
       <div class="r-gate-emoji">🔒</div>
       <h3>Please sign in to participate in this receipt.</h3>
       <p>Sign in to pick the items you ordered and pay your share.</p>
+      <div class="g-block hidden">
+        <div id="g-btn" class="g-btn"></div>
+        <div class="auth-divider">or</div>
+      </div>
       <a class="btn btn-primary btn-block" href="login.html?redirect=${back}">Login</a>
       <a class="btn btn-secondary btn-block" href="register.html?redirect=${back}">Register</a>
-      <button class="btn btn-ghost btn-block" id="g-google">Continue with Google</button>
     </div>`;
-  $id('g-google').addEventListener('click', () => toast('Google sign-in coming soon', 'info'));
+
+  // Signing in with Google here keeps them on the receipt — no round trip
+  // through the login page and back, which is the whole point of the link.
+  window.GoogleSignIn?.mount({
+    onSuccess: () => { R.confirmed = false; loadReceipt(); },
+  });
 }
 
 // ── order selection + live calc (sections 7–9) ────────────────

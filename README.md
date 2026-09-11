@@ -29,6 +29,10 @@ A full-stack mobile-first web application for managing shared expenses between f
   of being claimed unit by unit. The AI pre-ticks the obvious ones
 - **Group scans** — Scan straight into a group; every member is notified and
   the receipt is listed on the group page
+- **Sign in with Google** — One tap and you're in, with nothing to type. A
+  returning visitor is signed in automatically. Google accounts are linked to
+  an existing email/password account when the addresses match, so nobody ends
+  up with two profiles. Sessions last 30 days, so signing in is rare
 - **Authentication** — Register, login, logout, session-based security
 - **Dashboard** — Net balance, who owes you, who you owe, recent bills
 - **Bills** — Created from scans; equal or custom splits, editable after the fact
@@ -61,8 +65,36 @@ Place the entire `Qattah` folder there.
    receipt-sharing tables — safe to run on an existing DB, only adds tables)
 6. Import once more, choosing `database_update_v2.sql` (group receipts +
    shareable items — safe to re-run, it guards every change)
+7. And finally `database_update_v3.sql` (Sign in with Google — also safe
+   to re-run)
 
-### 4. Add your AI key
+### 4. Turn on Sign in with Google (optional)
+Skip this and the app just shows email/password sign-in — nothing breaks.
+
+1. <https://console.cloud.google.com> → create or pick a project
+2. **APIs & Services → OAuth consent screen** → External → fill in the app
+   name and your email → Save
+3. **APIs & Services → Credentials → Create Credentials → OAuth client ID**
+   → *Web application*
+4. Under **Authorised JavaScript origins** add the origin you open the app
+   from. For XAMPP that is exactly:
+   ```
+   http://localhost
+   ```
+   Origins only — no `/Qattah` path. Add the port if you use one.
+5. Copy the Client ID (it ends in `.apps.googleusercontent.com`) into
+   `api/config/google.php`:
+   ```php
+   const GOOGLE_CLIENT_ID = '1234567890-abc123.apps.googleusercontent.com';
+   ```
+
+This Client ID is *not* a secret — it is embedded in the sign-in button and
+visible in the page source, so it is safe to commit. There is no client
+secret in this flow at all: Google hands the browser a signed ID token and
+`api/auth/google.php` verifies that signature against Google's public
+certificates before trusting anything inside it.
+
+### 5. Add your AI key
 `api/config/ai.php` is gitignored so keys never reach the repo. Copy the
 template and paste your own key:
 ```
@@ -72,7 +104,7 @@ Get a free Gemini key at <https://aistudio.google.com/apikey>. Without a key
 the scan still works — you just fill the items in by hand in the confirm
 dialog instead of having them read for you.
 
-### 5. Configure database credentials
+### 6. Configure database credentials
 Edit `api/config/database.php`:
 ```php
 private string $host     = 'localhost';
@@ -81,13 +113,13 @@ private string $username = 'root';
 private string $password = '';   // your MySQL password
 ```
 
-### 6. Create the uploads folder
+### 7. Create the uploads folder
 ```
 C:\xampp\htdocs\qattah\uploads\receipts\
 ```
 Or it will be created automatically on first upload.
 
-### 7. Open the app
+### 8. Open the app
 ```
 http://localhost/qattah/login.html
 ```
@@ -230,6 +262,8 @@ categories  (seeded — 10 default categories)
 | POST | `/api/auth/logout.php` | Logout |
 | GET  | `/api/auth/me.php` | Current user |
 | PUT  | `/api/auth/me.php` | Update profile / password |
+| GET  | `/api/auth/google.php` | Is Google sign-in on, and with which client id |
+| POST | `/api/auth/google.php` | Verify a Google ID token and sign in |
 
 ### Bills
 | Method | URL | Description |

@@ -46,7 +46,7 @@ Pages.profile = function() {
             <div class="settings-icon" style="background:#DBEAFE">
               <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             </div>
-            <span class="settings-lbl">Change Password</span>
+            <span class="settings-lbl">${State.user?.has_password === false ? "Set a Password" : "Change Password"}</span>
           </div>
           <div class="settings-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></div>
         </div>
@@ -233,31 +233,44 @@ window.showEditProfile = () => {
 };
 
 window.showChangePassword = () => {
-  Modal.open('Change Password', `
+  // An account created through Google has no password to prove yet, so the
+  // dialog becomes "set one" — asking for a current password they never
+  // chose would be a dead end.
+  const hasPw = State.user?.has_password !== false;
+
+  Modal.open(hasPw ? 'Change Password' : 'Set a Password', `
+    ${hasPw ? `
+      <div class="form-group">
+        <label class="form-label">Current Password</label>
+        <input class="form-control" id="pw-old" type="password" placeholder="••••••••">
+      </div>`
+    : `<p style="font-size:.8125rem;color:var(--text-muted);margin-bottom:14px">
+         You signed up with Google. Setting a password is optional — it just
+         gives you a second way to get in.
+       </p>`}
     <div class="form-group">
-      <label class="form-label">Current Password</label>
-      <input class="form-control" id="pw-old" type="password" placeholder="••••••••">
-    </div>
-    <div class="form-group">
-      <label class="form-label">New Password</label>
+      <label class="form-label">${hasPw ? 'New Password' : 'Password'}</label>
       <input class="form-control" id="pw-new" type="password" placeholder="Min. 6 characters">
     </div>
     <div class="form-group">
-      <label class="form-label">Confirm New Password</label>
+      <label class="form-label">Confirm ${hasPw ? 'New ' : ''}Password</label>
       <input class="form-control" id="pw-confirm" type="password" placeholder="••••••••">
     </div>
   `, [
     { label:'Cancel', cls:'btn-secondary', onClick: Modal.close },
-    { label:'Change Password', cls:'btn-primary', onClick: async () => {
-      const oldPw = document.getElementById('pw-old').value;
+    { label: hasPw ? 'Change Password' : 'Set Password', cls:'btn-primary', onClick: async () => {
+      const oldPw = hasPw ? document.getElementById('pw-old').value : '';
       const newPw = document.getElementById('pw-new').value;
       const conf  = document.getElementById('pw-confirm').value;
-      if (!oldPw || !newPw) { toast('All fields required','error'); return; }
-      if (newPw !== conf)   { toast('Passwords do not match','error'); return; }
-      if (newPw.length < 6) { toast('Min. 6 characters','error'); return; }
+      if (hasPw && !oldPw) { toast('All fields required','error'); return; }
+      if (!newPw)          { toast('All fields required','error'); return; }
+      if (newPw !== conf)  { toast('Passwords do not match','error'); return; }
+      if (newPw.length < 6){ toast('Min. 6 characters','error'); return; }
       try {
         await Api.auth.update({ password: newPw, old_password: oldPw });
-        Modal.close(); toast('Password changed!', 'success');
+        if (State.user) State.user.has_password = true;
+        Modal.close();
+        toast(hasPw ? 'Password changed!' : 'Password set!', 'success');
       } catch(e) { toast(e.message,'error'); }
     }}
   ]);
@@ -268,6 +281,9 @@ window.confirmLogout = () => {
     { label:'Cancel', cls:'btn-secondary', onClick: Modal.close },
     { label:'Logout', cls:'btn-danger', onClick: async () => {
       await Api.auth.logout();
+      // Stop Google One Tap from signing them straight back in on the
+      // login page. GoogleSignIn isn't loaded here, so set its flag directly.
+      try { localStorage.setItem('qattah_signed_out', '1'); } catch (_) {}
       window.location.href = 'login.html';
     }}
   ]);

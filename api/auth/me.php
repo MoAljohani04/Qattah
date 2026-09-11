@@ -7,12 +7,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $auth = requireAuth();
     $db   = Database::getInstance()->getConnection();
     $stmt = $db->prepare(
-        "SELECT id, name, email, avatar, phone, bio, language, theme, created_at
+        "SELECT id, name, email, avatar, phone, bio, language, theme, created_at,
+                (password IS NOT NULL AND password <> '') AS has_password,
+                (google_id IS NOT NULL)                   AS has_google
          FROM users WHERE id = ?"
     );
     $stmt->execute([$auth['id']]);
     $user = $stmt->fetch();
     if (!$user) { error('User not found', 404); }
+
+    // MySQL hands booleans back as 1/0 strings — make them real booleans so
+    // the client can branch on them without truthiness surprises.
+    $user['has_password'] = (bool)(int)$user['has_password'];
+    $user['has_google']   = (bool)(int)$user['has_google'];
     success($user);
 }
 
@@ -47,11 +54,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
     }
     if (!empty($body['password'])) {
         if (mb_strlen($body['password']) < 6) { error('Password must be at least 6 characters'); }
-        // Verify old password
+
         $s = $db->prepare("SELECT password FROM users WHERE id = ?");
         $s->execute([$auth['id']]);
         $row = $s->fetch();
-        if (!$row || !password_verify($body['old_password'] ?? '', $row['password'])) {
+        if (!$row) { error('User not found', 404); }
+
+        // A Google account has no password yet, so there is no old one to
+        // prove. The session already proves who they are. Once a password
+        // exists, changing it always requires the current one.
+        if (!empty($row['password'])
+            && !password_verify($body['old_password'] ?? '', (string)$row['password'])) {
             error('Current password is incorrect', 403);
         }
         $fields[] = 'password = ?';
